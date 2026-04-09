@@ -2,7 +2,7 @@ environment: {}
 execution: {}
 metadata:
   createdAt: 2026-04-09T21:37:37.113Z
-  modifiedAt: 2026-04-09T23:58:42.031Z
+  modifiedAt: 2026-04-09T23:27:56.842Z
 project:
   id: 6af78f630b8d40b28922cfc96c06b4f1
   integrations:
@@ -12,15 +12,15 @@ project:
   name: CAMILA NICOLE RODAS MIRANDA’s Untitled project
   notebooks:
     - blocks:
-        - id: 0329e2002de5459f816bf957ce91bcb4
-          blockGroup: 8514777e8cea409392541026bb3d5220
+        - id: 7ceb78d4e2cf48ccbe9f29ccfc78148c
+          blockGroup: 9eab47d6-7477-4bc1-b109-cbeff110bf95
           sortingKey: "000000"
           type: markdown
-          content: "# Caso de Estudio MOVIES CRISP DM"
+          content: "# Caso de Estudio 5: Green Building Energy Efficiency"
           metadata:
             id: smebYHBl6ygb
-        - id: 218dcf182bb2402aad89f5d2ebbda843
-          blockGroup: de002ef025644d6f9fd18890a0370846
+        - id: 6a64f87cf59446ce86747f69468909eb
+          blockGroup: 79b985fc-8930-47ae-b748-2bff4e2826bf
           sortingKey: "000001"
           type: markdown
           content: >-
@@ -55,29 +55,29 @@ project:
                 * **Falsos Negativos (FN):** Predecir que un edificio "No es Eficiente" cuando sí lo es. *Costo:* Sobrecostos innecesarios en el rediseño inicial del proyecto arquitectónico. En este contexto, un FP es más crítico que un FN para el medio ambiente y los costos a largo plazo.
           metadata:
             id: SvTnoXQz6OAX
-        - id: 18a23be54a71488b95ce28f30e43a1f9
-          blockGroup: 7048d8e6b552478e8559a00bc9608148
+        - id: 36a41fb4447346a3a2af09e5c5c9703f
+          blockGroup: d4b509f1-be41-4292-bac2-ee443c851c1a
           sortingKey: "000002"
           type: markdown
           content: "## **Fase 2: Comprensión de los Datos (Data Understanding)**"
           metadata:
             id: BfmqjBg36Rgp
-        - id: f5566067f12e4efbb97a2e610929d043
-          blockGroup: 4f9bbd03637d42a69afac04e1f32bd50
+        - id: fcc8aea4ec214d8693e53df063e7ba0b
+          blockGroup: 789d3888-c294-442d-a516-3dd455b7ca7c
           sortingKey: "000003"
           type: markdown
           content: "### Cargado de librerias y dataset"
           metadata:
             id: XSr9lBHB7XI_
-        - id: 2d4e992a5b37409db78816d905b63b64
-          blockGroup: e2a6d14525f14bdfa0d3cfe03a50464b
+        - id: 5c94e46d40a14341bdb2aebcc3633e6c
+          blockGroup: 3ac354f8-2b9d-4e1c-a5ac-683bdc22777d
           sortingKey: "000004"
           type: markdown
           content: "**Configuración e importaciones**"
           metadata:
             id: x8OqbV6o7QBy
-        - id: d72bff77c84242559547fb1998c1a4d6
-          blockGroup: f8f5691141724fafa75398caf1513f16
+        - id: c9eea5f9cb0d471c92417dbbef6b6598
+          blockGroup: 349b790a-c49b-4808-bae7-9d52d5c881de
           sortingKey: "000005"
           executionCount: 76
           type: code
@@ -119,8 +119,8 @@ project:
               elapsed: 40
               user_tz: 240
               timestamp: 1773262275321
-        - id: 1ae7ecc7e25b46858d45811a7703b72c
-          blockGroup: 025c777e55b94e149329d1ad63b0dcf7
+        - id: 7d7f848d3539448dbbb27028c5e70fa1
+          blockGroup: eba9cd33-ba99-463d-8a1a-7b5ef3f097c5
           sortingKey: "000006"
           executionCount: 77
           type: code
@@ -145,8 +145,8 @@ project:
               elapsed: 930
               user_tz: 240
               timestamp: 1773262276254
-        - id: 34de4d7ab24448728f884e7e48d43ae1
-          blockGroup: 3d2338da91814340919a2b328e3e0651
+        - id: f914fa5e66374e028269fef23d4c0255
+          blockGroup: b918b83f-02be-483a-8f26-e8a264a2117f
           sortingKey: "000007"
           executionCount: 78
           type: code
@@ -167,15 +167,15 @@ project:
               elapsed: 4
               user_tz: 240
               timestamp: 1773262276291
-        - id: 4e64fc43d38e4614af46921a641ccacf
-          blockGroup: f081f4516f1a4b0cbee5ecffbdaebd41
+        - id: c6da8fe6d39e439a86aa5367f98fa416
+          blockGroup: 11791c1c-12ab-419d-b4cf-046dc4e61d13
           sortingKey: "000008"
           type: markdown
           content: "**Carga del Dataset**"
           metadata:
             id: rEra-7UK88vO
-        - id: 1dbc569f4c9345b1b27e5fd6df249722
-          blockGroup: ba4a0c25a788463580c8575b742dfe95
+        - id: 25c516cef6fe45c5b81bb582216fe677
+          blockGroup: b9516ee3-7311-4aaf-b2fa-3e90a1e79f5e
           sortingKey: "000009"
           executionCount: 79
           type: code
@@ -203,15 +203,15 @@ project:
               elapsed: 758
               user_tz: 240
               timestamp: 1773262277051
-        - id: 1424401162554ea2bb5d80b6b21e0a0c
-          blockGroup: 26f8b194367d4fb98845ac19e9f1a91a
+        - id: 412e81d979ba4631b7b86cfd87a1d0e2
+          blockGroup: 4c0858ce-d586-40b8-8eba-6c85a2339ae8
           sortingKey: "000010"
           type: markdown
           content: "**Renombrar columnas**"
           metadata:
             id: RyXKHuYY873e
-        - id: 8b058db4b3df4b2fbd16a8eb6360a101
-          blockGroup: 316846a408094025804bae166cd07244
+        - id: 4a5b159b3cb14833b09306f5586ad2a5
+          blockGroup: a95033d2-3f2e-4e83-9a67-7aa27d649dd4
           sortingKey: "000011"
           executionCount: 80
           type: code
@@ -236,8 +236,8 @@ project:
               elapsed: 34
               user_tz: 240
               timestamp: 1773262277088
-        - id: aaa3ce657a774d4b9964f04163ff4339
-          blockGroup: 655658d5841c4a92a70e86c1f67b285d
+        - id: 48bd23ced40c4832b1e7b878c6f0fd89
+          blockGroup: a3a530a3-c136-4f18-adc3-0149a5bf822b
           sortingKey: "000012"
           executionCount: 81
           type: code
@@ -260,8 +260,8 @@ project:
               elapsed: 41
               user_tz: 240
               timestamp: 1773262277131
-        - id: e753ecdd8ec04c9888d7bfb20354a0a3
-          blockGroup: 4f2072f4b24f4f0dab3078351b147c33
+        - id: ff5cbceab49d48778371aa4989ecb5ff
+          blockGroup: 0b586638-fc99-459d-9fa8-4d6150a7e046
           sortingKey: "000013"
           type: markdown
           content: >-
@@ -274,15 +274,15 @@ project:
             Glazing_Area_Distribution son int64, es decir enteros.
           metadata:
             id: eUS0K1fd9tZd
-        - id: 5ed30cf2b5994a7ba81c1fd1da4d57a4
-          blockGroup: 77d481964da2409ba4c114520e49ef28
+        - id: 98f156b05bf74a4c93de02731612e9a3
+          blockGroup: 064d603c-73e9-41c1-bbbe-c8afba95a3bc
           sortingKey: "000014"
           type: markdown
           content: "### Informacion General del dataset"
           metadata:
             id: 4nNP-uLJ7em_
-        - id: 4d30f54879354675a2286186e3c84df4
-          blockGroup: 42418256b5a84acc8fe2b330d1ea1ecf
+        - id: 78d9eba417f149c6a034ffa218c03397
+          blockGroup: 263ebc0f-b97a-4ddc-b784-bcc3b3aeb4f4
           sortingKey: "000015"
           executionCount: 82
           type: code
@@ -305,15 +305,15 @@ project:
               elapsed: 35
               user_tz: 240
               timestamp: 1773262277167
-        - id: 5ae8bfd4f04647aba429b55991a0b025
-          blockGroup: 3ac8682b987f4c25b64dfebbfe5b61cf
+        - id: 38c0ba6bb1a54c0386056bcec6c0ea61
+          blockGroup: 331d029a-31fe-429a-8837-afebd473b9af
           sortingKey: "000016"
           type: markdown
           content: Inspeccionamos si hay valores nulos de nuevo, y verificamos que no hay ninguno.
           metadata:
             id: vfKgcuZI-UH8
-        - id: d89b31c8cdc14066997a31bdb2a2557a
-          blockGroup: 8b77a28b17f94dcb8cbabc15a755f148
+        - id: 4a0ae280b908461288dc1305cbe01550
+          blockGroup: b06361f9-295a-437b-aef6-1def002c1f6d
           sortingKey: "000017"
           executionCount: 83
           type: code
@@ -335,22 +335,22 @@ project:
               elapsed: 47
               user_tz: 240
               timestamp: 1773262277216
-        - id: e9cfa14977674277b985142ef64fd2b1
-          blockGroup: 2de70b898ba24c13881c6c9987c77789
+        - id: 5a99d725b6f645c6a69f673390ece470
+          blockGroup: 3ca0f520-e3dd-4b2a-988d-c9d7c8aaa465
           sortingKey: "000018"
           type: markdown
           content: "## **Fase 3: Preparación de los Datos (Data Preparation)**"
           metadata:
             id: -xwMQ1M46cba
-        - id: d7ca9b95d4a744418797f5b0848c3f79
-          blockGroup: 4439fa78e4da43388a3c013eb94af324
+        - id: f19df7ca74564b88a7c1e414e2decbec
+          blockGroup: 8c9157bc-2b58-41a7-b9ba-d2d8adc15f24
           sortingKey: "000019"
           type: markdown
           content: "**Análisis de distribuciones y outliers**"
           metadata:
             id: XVdVU3dwLVy0
-        - id: a707497846504ca390f9bb3748e624b7
-          blockGroup: c9b2277912c748eaa9563350d650db30
+        - id: 750d8ce909d5489a8557a5cf966349f4
+          blockGroup: b35a07b0-7e1a-4cf9-ab9d-56b33324193f
           sortingKey: "000020"
           type: markdown
           content: >-
@@ -367,8 +367,8 @@ project:
             Esto justifica plenamente el requisito de aplicar un `StandardScaler` más adelante en el pipeline.
           metadata:
             id: P2mMG77y_Urj
-        - id: d89f2266275f44199e04d24e3843bfa7
-          blockGroup: 1173207cbbc1499b8299d145cf863219
+        - id: 7fcc87db98d24e8395f211d646c44962
+          blockGroup: 204d9309-ef00-4f9f-902d-1aa1dc8b1e14
           sortingKey: "000021"
           executionCount: 84
           type: code
@@ -388,8 +388,8 @@ project:
               elapsed: 42
               user_tz: 240
               timestamp: 1773262277259
-        - id: 2d4775a656d24da0aab3edf4ce54f3e1
-          blockGroup: 2ae4eb38cc244111ace39e28b616f7d6
+        - id: 607ce23276cd4853abd643f231eae02d
+          blockGroup: a51bccd3-29dc-4209-948a-6feabd0a01d7
           sortingKey: "000022"
           executionCount: 85
           type: code
@@ -423,8 +423,8 @@ project:
               elapsed: 3020
               user_tz: 240
               timestamp: 1773262280282
-        - id: fcb47ee9e7f14e669cef4b7c10a3fde8
-          blockGroup: fe6f870b558b4309a12929033ca54874
+        - id: 00542f7349a94c05b8dcf575d7c2cba8
+          blockGroup: 6566c9a6-811e-4fa5-8880-1633e3257156
           sortingKey: "000023"
           executionCount: 86
           type: code
@@ -458,15 +458,15 @@ project:
               elapsed: 1977
               user_tz: 240
               timestamp: 1773262282288
-        - id: 7cd646a6d3d0478894449d5e813d2b42
-          blockGroup: 0184b41396c74a62948da64b94e2d745
+        - id: 9c0cf1c5e6664157bf1a750b5ea1c763
+          blockGroup: 145c012c-cd58-44cd-ac34-a2439ce9caad
           sortingKey: "000024"
           type: markdown
           content: "**Análisis de correlaciones**"
           metadata:
             id: oas40mHCPF_l
-        - id: bfad2a8be83c410a93297e6bd8f0d575
-          blockGroup: 63b6a0d304ca46af8ae0c333faf1ab3d
+        - id: d1f0a6802a0f485da27662630eb6a8b4
+          blockGroup: 2c83f62c-cad3-4592-a181-2dd4492ab0bd
           sortingKey: "000025"
           executionCount: 87
           type: code
@@ -499,8 +499,8 @@ project:
               elapsed: 853
               user_tz: 240
               timestamp: 1773262283148
-        - id: ed4653e5624e41bf94084d09783b5907
-          blockGroup: 064db3cdb010461b99490ceac4a7be0b
+        - id: f95b61ff3b3e4aab94c33f947401c1e1
+          blockGroup: 2716256a-6e12-4c44-9b24-8f30bbd20185
           sortingKey: "000026"
           type: markdown
           content: >-
@@ -518,8 +518,8 @@ project:
             eliminación de registros.
           metadata:
             id: UIqZms2PL5uL
-        - id: cfdd89d3b71148fcab4af239ec20bf55
-          blockGroup: b4987d84e04a4db6948600294a798260
+        - id: 32fff8f21a2c4b49b74fabdb4cabc8a5
+          blockGroup: 17fd67f4-c2ac-44da-8cd7-41681c802896
           sortingKey: "000027"
           type: markdown
           content: >-
@@ -538,15 +538,15 @@ project:
             utilizar regularización (Regresión Ridge) más adelante.
           metadata:
             id: v6WjDwB5Pl5k
-        - id: 66cfafd910a74470b51e46689e77505d
-          blockGroup: ec00b1e3d8d84ff781bf20f06e750be9
+        - id: 6823f2d4325c4f1684f40448237e52f1
+          blockGroup: 40260c19-f50b-46cd-9eeb-131316b19ecc
           sortingKey: "000028"
           type: markdown
           content: "###Analisis Bi variable"
           metadata:
             id: cS4dINbEQnVS
-        - id: c10194d08a4547f09abc5e495da4a9eb
-          blockGroup: 12f466e3d9fb4c588cc39fea3093d8c7
+        - id: 4ace0b5126144c29b80e5278a706cc99
+          blockGroup: b1c9d7ff-d589-41f2-bae9-d3ed615d4955
           sortingKey: "000029"
           executionCount: 88
           type: code
@@ -597,8 +597,8 @@ project:
               elapsed: 731
               user_tz: 240
               timestamp: 1773262283881
-        - id: ab7044f879c142fb816f1d8273e88a5f
-          blockGroup: f4698f39868242f9b458bd917670e7a5
+        - id: 5d278df8e9a0473fb8c05ced9863bcf1
+          blockGroup: 432c79ef-0776-4045-8327-3fb6f7472fe9
           sortingKey: "000030"
           executionCount: 89
           type: code
@@ -660,8 +660,8 @@ project:
               elapsed: 902
               user_tz: 240
               timestamp: 1773262284785
-        - id: 2622e190e5874d0d8098010a33e84b46
-          blockGroup: 66b92af435754deda9b790ba12b15340
+        - id: e742c3d597514aa494186c06ef4045af
+          blockGroup: c680a188-7208-4e87-9889-769eadaa7706
           sortingKey: "000031"
           type: markdown
           content: >-
@@ -682,8 +682,8 @@ project:
             del edificio casi no impacta en la carga térmica.
           metadata:
             id: t8O4NOVbuvIB
-        - id: 18e1a14d7ada416fbf97ffef590fea15
-          blockGroup: 1dd1b2d787f2439e891e0ee243ffd9be
+        - id: 46ad539d8ad0451d83a57727da139ccc
+          blockGroup: 36336996-f5d4-42c7-9c29-75dc8af86188
           sortingKey: "000032"
           type: markdown
           content: >-
@@ -699,8 +699,8 @@ project:
             indica diseños de edificios estandarizados.
           metadata:
             id: Qtv4qwfRuksB
-        - id: 4360917cfec847af93d99020311d382d
-          blockGroup: 14898ccda9f64d6ea38a9035ff6f688e
+        - id: a22f8d35e52b44deb35b72f10fae4287
+          blockGroup: 42678aba-70dc-4ce6-88ac-d02d47576b2a
           sortingKey: "000033"
           executionCount: 90
           type: code
@@ -731,8 +731,8 @@ project:
               elapsed: 2745
               user_tz: 240
               timestamp: 1773262287563
-        - id: b0130f5dd0f44afb9ba3551dcc2cc96b
-          blockGroup: 01bb626db4bc4329b23648bfe819bbf3
+        - id: 1d18e4db96694b5b84f8107b1431ce18
+          blockGroup: df08387b-4c6a-48f9-88a2-02b4c0d4bcdf
           sortingKey: "000034"
           type: markdown
           content: >-
@@ -745,8 +745,8 @@ project:
             penalización L2 mitigará la varianza causada por esta multicolinealidad estructural del edificio.
           metadata:
             id: kfG1NlpdwhYs
-        - id: 25cf6e7b091f484fbc12d72a17077eb0
-          blockGroup: 0fe1106766c24869865ea8931eed4d1d
+        - id: c22a4f7af31d437bb8355556bfc46d8d
+          blockGroup: 76d38d15-a00f-4cf5-8342-778fa0cf1783
           sortingKey: "000035"
           type: markdown
           content: >-
@@ -768,8 +768,8 @@ project:
             calefacción (`Heating_Load`).
           metadata:
             id: jRWh0B1DoUiY
-        - id: efbb5bd9904543cbacaab13c935dc078
-          blockGroup: 19b4e7d94e1e4c17a52484112ea495fd
+        - id: c2121602da344f9494e6ce854e8503c5
+          blockGroup: 16b6b242-207c-49ae-95d5-653e91eba0cc
           sortingKey: "000036"
           executionCount: 92
           type: code
@@ -789,8 +789,8 @@ project:
               elapsed: 2
               user_tz: 240
               timestamp: 1773262287575
-        - id: 7f4efa4f317a4e3e9f370c6ec3655299
-          blockGroup: db365046d732486bb1cefae9a497bf74
+        - id: 08488f114bb74d319c63b9a8555771c2
+          blockGroup: 5a078cf0-6eb3-4838-a647-0f77efcff0cc
           sortingKey: "000037"
           executionCount: 93
           type: code
@@ -825,8 +825,8 @@ project:
               elapsed: 11
               user_tz: 240
               timestamp: 1773262287589
-        - id: 709e8531cd3f49678adbcdb05f217748
-          blockGroup: b02e661155254f7fac7dae14310f1f6f
+        - id: 11d5f131f8a8446ca75a03dd6e299df3
+          blockGroup: 57845871-893d-4668-b764-1a08c52ee552
           sortingKey: "000038"
           executionCount: 91
           type: code
@@ -849,8 +849,8 @@ project:
               elapsed: 4
               user_tz: 240
               timestamp: 1773262287570
-        - id: 6eec4957273e4f6a8446073a3a3679ba
-          blockGroup: 1fdc2bf1d83c4582a50c8d364ebae742
+        - id: 86238def73344ca09a37ab64ef47ac2a
+          blockGroup: 14896abb-b812-4d5a-bcc9-f0453f94e7d7
           sortingKey: "000039"
           type: markdown
           content: >-
@@ -864,8 +864,8 @@ project:
             como lo exigen las instrucciones técnicas.
           metadata:
             id: Kr3D5wAt5Dq_
-        - id: e6833c99fe6b4f0e9fa9b96aa4299d9f
-          blockGroup: 5331cadf73244c549273bb6723c56797
+        - id: a2308299c5a349ceb7231cf347ca2dfb
+          blockGroup: 8afc7a78-f5c3-48d4-97f5-261ba0445305
           sortingKey: "000040"
           executionCount: 94
           type: code
@@ -915,8 +915,8 @@ project:
               elapsed: 5
               user_tz: 240
               timestamp: 1773262287597
-        - id: c6d47bd2af754af4a55ab80a1d06988d
-          blockGroup: 7146b6a401ee4a62a371b5c3b4373a1f
+        - id: 07afa7950f184c9993b703fadb91f923
+          blockGroup: 3212b4e1-b5a2-42bc-809f-2627e347a1be
           sortingKey: "000041"
           type: markdown
           content: >-
@@ -932,8 +932,8 @@ project:
             funcionen correctamente y penalicen los coeficientes de manera justa.
           metadata:
             id: mJlFibXG5XIm
-        - id: bfd1c401e5614595a4fc1dc0e24731e7
-          blockGroup: 1f0789e7769947c697b22253543e8950
+        - id: 952e35a695394513a2646655e35f7405
+          blockGroup: f83b2096-b663-46a6-bc71-9a74df9dfcef
           sortingKey: "000042"
           type: markdown
           content: >-
@@ -960,22 +960,22 @@ project:
             Evaluaremos con validación cruzada (K-Fold = 5) usando RMSE y $R^2$.
           metadata:
             id: eK4i8kLtCwON
-        - id: c5e68f80b2714171a1444f9be7b2fc6e
-          blockGroup: a5fd0f5a8aec4dfa8bcc6fdd843599d3
+        - id: 2bf18ee50f2b494ead32c5f32309aebe
+          blockGroup: d591c9b6-7a7a-4e8c-846d-741b87731759
           sortingKey: "000043"
           type: markdown
           content: "#### Entrenamiento de los modelos"
           metadata:
             id: VgTyuRNuZIj8
-        - id: 26c4dbfa99e8453db2f6ac52f29996a7
-          blockGroup: 33ca5820cbdb458eb387ba49be6bae7f
+        - id: f6bc7f7be9374dbd918e18c1101a62dc
+          blockGroup: 9cb0dc0e-40dc-4d93-a35a-c2ce92d584c1
           sortingKey: "000044"
           type: markdown
           content: "## **Fase 4: Modelado (Modeling)**"
           metadata:
             id: S-hjfhOvk99r
-        - id: 6f79443657be449d87aa0b051b582a3f
-          blockGroup: 763ebb3de7024d6796f8c23fa36d62ab
+        - id: fe85047ada994236bafdd47786b6a9d2
+          blockGroup: 190f31b3-78d3-4dde-a9ce-e4556ed18c1b
           sortingKey: "000045"
           executionCount: 95
           type: code
@@ -1058,15 +1058,15 @@ project:
               elapsed: 2165
               user_tz: 240
               timestamp: 1773262289776
-        - id: 3211435a216a4b9b8e3aeb13e373d167
-          blockGroup: 4741206e0dc24d00bd038caf82500642
+        - id: f189a4e05e8c412bb8b26f9c74d847b0
+          blockGroup: 461316d5-e7be-4c4f-bf18-39ec78bc15dd
           sortingKey: "000046"
           type: markdown
           content: "**Visualización de Coeficientes y Learning Curves**"
           metadata:
             id: TbxP8vVvDNAO
-        - id: bc3f704111a74f7586af442d16d42327
-          blockGroup: 3d1086281f3d4515a25963d6aa379e8b
+        - id: f26679616d5c451f8c492c2acbbbb3eb
+          blockGroup: 6423e2ac-8eb3-4eaa-8aaf-19653e17df76
           sortingKey: "000047"
           executionCount: 96
           type: code
@@ -1137,15 +1137,15 @@ project:
               elapsed: 2500
               user_tz: 240
               timestamp: 1773262292280
-        - id: 6536fbbecd954bb889ec188264f2a5d9
-          blockGroup: d51486af38e74078ad84dd453bcac637
+        - id: 4851cdd4f5d84f8f9f1a5b034312594c
+          blockGroup: 92eadd8e-13d1-4cbf-9eb7-d3f62fd7d54f
           sortingKey: "000048"
           type: markdown
           content: "#### Busqueda de los mejores hiperparametros (RandomizedSearchCV )"
           metadata:
             id: r_zKH9TkZThC
-        - id: 35c86342e16448e8b8c93f4abcb8ba15
-          blockGroup: 42b5de3cda474b9a81a427b6af2a6a09
+        - id: 9108f1e2ced44c37bed43c13ce948be2
+          blockGroup: fe8b0a42-345a-4522-a3ee-93ac6af3533a
           sortingKey: "000049"
           executionCount: 97
           type: code
@@ -1254,8 +1254,8 @@ project:
               elapsed: 14888
               user_tz: 240
               timestamp: 1773262307171
-        - id: 426b3c1b02404627b61a1e7dd3a78499
-          blockGroup: 5e3e54e4b5b8449cb5df7b31613cad58
+        - id: 43bd02157ca04c838673897e29291dcd
+          blockGroup: 026b31bf-bfa1-4b50-ba90-4b91262fc0db
           sortingKey: "000050"
           type: markdown
           content: >-
@@ -1278,8 +1278,8 @@ project:
             que no sufre de sobreajuste severo.
           metadata:
             id: TRxkChHnxQz2
-        - id: 898874252dcc4a0296f36eefc7746ac3
-          blockGroup: 7cb22c0fac7846378a41feb279b09269
+        - id: 2a037e38c1c14fe3b13d69273adc647e
+          blockGroup: b2ddd1b7-aaa3-4fc3-9367-c5cd993ba505
           sortingKey: "000051"
           executionCount: 98
           type: code
@@ -1359,8 +1359,8 @@ project:
               elapsed: 2945
               user_tz: 240
               timestamp: 1773262310133
-        - id: 3180c6c4cb024b9093798b97f4665167
-          blockGroup: cfadda095cc4479e8a7c1e5482b91ed2
+        - id: bdad4d5d0b944d56aaa283a870d524d2
+          blockGroup: a07007a7-1250-42d4-ae31-86b4324ae0c7
           sortingKey: "000052"
           type: markdown
           content: >-
@@ -1386,22 +1386,22 @@ project:
             Evaluaremos el modelo reportando el F1-Score y la Matriz de Confusión.
           metadata:
             id: qL7JzxnZl39J
-        - id: 00ac493dd6be4065addca447f8c5dfb1
-          blockGroup: 0b84cfb57568492eb7a83607cdfdae2b
+        - id: 77600ac4dc08478facf0ddee753e185e
+          blockGroup: e45ca580-3c81-4e88-a073-d19ba1cb9a25
           sortingKey: "000053"
           type: markdown
           content: "#### Entrenamiento de los modelos"
           metadata:
             id: 9UWtJ7lkbgwt
-        - id: 0e60fc3fad1748378deb6d02f54a4f74
-          blockGroup: c6893a8c17134dcb9d9452bb0d99337b
+        - id: a830db6835704356b79dc521aa8fe471
+          blockGroup: 6a436518-c4a7-4947-a2b0-880e691965a0
           sortingKey: "000054"
           type: markdown
           content: "**Evaluación**"
           metadata:
             id: h4jvqzBrmK9T
-        - id: adfca062ec0a4b7f94d38ecefd0b84a6
-          blockGroup: 9195135bab6341cbabeae395432e1522
+        - id: dc0694ea526e47e7a29833b1128f66e1
+          blockGroup: 2d990749-845f-4649-8e49-2cf3d8e1dd72
           sortingKey: "000055"
           executionCount: 100
           type: code
@@ -1473,8 +1473,8 @@ project:
               elapsed: 665
               user_tz: 240
               timestamp: 1773262310938
-        - id: 3334c3f774fe45e499b49750965ce753
-          blockGroup: 6f1451a44a8e4f7ca6d178e275fb8537
+        - id: 30ec5322c602409fa92ca1a3dcaa6a38
+          blockGroup: 988066a2-c0e4-4900-8beb-47d9e0d1f117
           sortingKey: "000056"
           executionCount: 99
           type: code
@@ -1531,15 +1531,15 @@ project:
               elapsed: 116
               user_tz: 240
               timestamp: 1773262310254
-        - id: c34248a1ace14b9697c8c7ccfbb841d6
-          blockGroup: 8414f6ddc0304036813d94a3e443f39f
+        - id: 971631aa5da540f0bb32ee72074bfc77
+          blockGroup: 3e61fd61-85f0-4a63-bbd9-b24610a81401
           sortingKey: "000057"
           type: markdown
           content: "#### Busqueda de los mejores hiperparametros (RandomizedSearchCV )"
           metadata:
             id: Vt68sYU6biyI
-        - id: 0f14bb88d7e3482f954f8a514eab3e4b
-          blockGroup: e6be3989de694c10b210f1aed0ba0ea4
+        - id: d72e80f9ba434b4f906af07e4dcc6e7f
+          blockGroup: 115a79f8-95e7-49a5-b49a-972290ff82c3
           sortingKey: "000058"
           executionCount: 101
           type: code
@@ -1612,8 +1612,8 @@ project:
               elapsed: 21460
               user_tz: 240
               timestamp: 1773262332385
-        - id: 690df3032dd348d8b759a2973e9f53fe
-          blockGroup: fd4f385b6b474e7293c0bdefc78931cf
+        - id: 4ac79dd97c5c4086b23e4f8d8e910d9f
+          blockGroup: 3bd0e0ef-5509-4d73-acf6-f9ae3792d3b3
           sortingKey: "000059"
           executionCount: 102
           type: code
@@ -1687,8 +1687,8 @@ project:
               elapsed: 327
               user_tz: 240
               timestamp: 1773262332674
-        - id: d8cf6eb214c446ad8a854461faefa1a6
-          blockGroup: f9ca7631fc97423280df9363193ef4c4
+        - id: 66bd4134c21f490eae29b5c03056593b
+          blockGroup: b89282cc-9a62-4041-9788-f9fe59a10b7a
           sortingKey: "000060"
           type: markdown
           content: >-
@@ -1754,22 +1754,22 @@ project:
             proyectos que no cumplan con el estándar energético real.
           metadata:
             id: tzWtVrYcSLbJ
-        - id: 310aa6a63d224edfbd1b4e3972fa6fac
-          blockGroup: 3592b49bcd814288be2a715373f62838
+        - id: a6c96f31e5ab4bfc851b9a3742ad55fd
+          blockGroup: 4339cc98-a36e-4a6e-8c01-7d5ae0f254d9
           sortingKey: "000061"
           type: markdown
           content: "## **Fase 6: Despliegue (Deployment) - Conclusiones y Recomendaciones**"
           metadata:
             id: G4D0YJsAlVQI
-        - id: 5f8792fa0f8c41fd9a4d43bd55ff22f9
-          blockGroup: 3ff60d46bf98413f98eb8d425565dab6
+        - id: a259d2c8f9d447a782ac1d07ebb4a733
+          blockGroup: 4fad70cb-0af1-4459-bc2c-56d9ff25c173
           sortingKey: "000062"
           type: markdown
           content: "## **Fase 5: Evaluación (Evaluation)**"
           metadata:
             id: kviAo2nDlLnb
-        - id: 20ed0bbeedcc4158baf88b3946ad7e79
-          blockGroup: e6eade5c76d647c8bdd86e3ee8491460
+        - id: 461927750bf6499991d4b382a474240a
+          blockGroup: 12640039-f48b-4df1-8020-d6750c621d99
           sortingKey: "000063"
           type: markdown
           content: >-
@@ -1798,7 +1798,36 @@ project:
           metadata:
             id: 2sJitqwJmOnz
       executionMode: block
-      id: f22c2072d3a84a55b540d1ef116890d7
+      id: af093524fd2b4bd18232e04387bfa606
       isModule: false
-      name: Notebook Movies
+      name: Caso5Boost
+    - blocks: []
+      executionMode: block
+      id: ed10efc4d0cb4e128cf94f5bd0c54491
+      isModule: false
+      name: Notebook 1
+    - blocks:
+        - id: a79088fbd4294437aad824ba5bb75c51
+          blockGroup: eb4c9f1e7a964095818a7ab5cc5e3a14
+          sortingKey: "000000"
+          contentHash: 4fb08390
+          executionFinishedAt: 2026-04-09T21:45:02.375Z
+          executionStartedAt: 2026-04-09T21:45:02.372Z
+          type: code
+          content: print("hola")
+          metadata:
+            execution_start: 1775771102372
+            execution_millis: 3
+            execution_context_id: 784f2452-a65e-4bea-a025-4d4444383bde
+        - id: fbc695750aa44a1e91df9c0ed2b18280
+          blockGroup: 028e2a63f12940d1ae0e1df7cc5a5845
+          sortingKey: "000001"
+          type: notebook-function
+          content: ""
+          metadata:
+            function_notebook_id: null
+      executionMode: block
+      id: 520b7c7180f841f0a0c4a6f585ce8002
+      isModule: false
+      name: Proyecto Machine
 version: 1.0.0
