@@ -1,0 +1,8 @@
+# Ignorar datasets pesados
+data/ratings.csv
+data/genome-scores.csv
+data/tags.csv
+# Ignorar entornos virtuales y basura del sistema
+venv/
+__pycache__/
+.DS_Store
