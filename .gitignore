@@ -1,10 +1,10 @@
 # Ignorar datasets pesados
-data/ratings.csv
-data/genome-scores.csv
-data/genome-tags.csv
-data/links.csv
-data/movies.csv
-data/tags.csv
+data/raw/ratings.csv
+data/raw/genome-scores.csv
+data/raw/genome-tags.csv
+data/raw/links.csv
+data/raw/movies.csv
+data/raw/tags.csv
 
 # Ignorar entornos virtuales y basura del sistema
 venv/
