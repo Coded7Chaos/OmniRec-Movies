@@ -1,8 +1,13 @@
+# NumPy fijado a la serie 1.26 porque scikit-surprise==1.1.4 se distribuye
+# como wheel compilado contra NumPy 1.x. Con NumPy 2.x aparece el error
+# "numpy.core.multiarray failed to import" al hacer `from surprise import ...`.
+# Polars 1.9, pandas 2.2 y scikit-learn 1.5 son compatibles con NumPy 1.26.
+numpy>=1.26,<2.0
 polars==1.9.*
 pyarrow==18.*
 pandas==2.2.*
-numpy==2.1.*
 scikit-learn==1.5.*
+scikit-surprise==1.1.4
 psutil==6.1.*
 matplotlib==3.9.*
 seaborn==0.13.*
@@ -10,3 +15,7 @@ jupyter
 ipykernel
 tqdm
 wordcloud
+joblib
+# Opcional — AutoML benchmark con TPE (si la instalación falla, el notebook
+# 03 detecta ImportError y usa un GridSearchCV multi-algoritmo como fallback).
+# auto-surprise==0.1.8
