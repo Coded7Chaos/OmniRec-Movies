@@ -1,3 +1,6 @@
+# =============================================================================
+# Pipeline ML / notebooks 01–03
+# =============================================================================
 # NumPy fijado a la serie 1.26 porque scikit-surprise==1.1.4 se distribuye
 # como wheel compilado contra NumPy 1.x. Con NumPy 2.x aparece el error
 # "numpy.core.multiarray failed to import" al hacer `from surprise import ...`.
@@ -19,3 +22,17 @@ joblib
 # Opcional — AutoML benchmark con TPE (si la instalación falla, el notebook
 # 03 detecta ImportError y usa un GridSearchCV multi-algoritmo como fallback).
 # auto-surprise==0.1.8
+
+# =============================================================================
+# Demo Django (CRISP-DM Fase 6 — Deployment) en `app/`
+# =============================================================================
+Django==6.0.*
+django-environ==0.13.*
+django-htmx==1.27.*
+django-browser-reload==1.21.*
+# django-tailwind + pytailwindcss permiten compilar CSS con el CLI standalone
+# (sin npm). El testbench actual usa Tailwind vía CDN en `base.html` para
+# evitar el build-step; para producción se recomienda crear el theme app con
+# `python manage.py tailwind init theme` y compilar los assets.
+django-tailwind==4.4.*
+pytailwindcss==0.3.*

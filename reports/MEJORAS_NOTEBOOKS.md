@@ -132,7 +132,7 @@ Notebook `03_ML_Baseline_AutoML.ipynb` — **CRISP-DM Fase 4 (Modeling)** + **CR
   - Sección 9: Clustering KMeans sobre `svd.pu` y `svd.qi`, elbow + silhouette, interpretación por géneros y popularidad, PCA 2D.
   - Sección 10: Conclusiones y decisiones para la Fase 4 del proyecto (notebook 04 — DL).
 
-Artefactos que persiste: `models/*.pkl` (5 modelos), `reports/model_comparison.csv`, `reports/user_clusters.parquet`, `reports/item_clusters.parquet`.
+Artefactos que persiste: `models/*.pkl` (5 modelos) + `data/intermediate/model_comparison.csv`, `data/intermediate/user_clusters.parquet`, `data/intermediate/item_clusters.parquet`. *Nota: hasta la iteración 4 estos tres últimos se escribían en `reports/`; en la iteración 5 (2026-04-20) se movieron a `data/intermediate/` para que `reports/` quede reservado exclusivamente a documentación Markdown — ver `Proyecto.md` §9.*
 
 ---
 
