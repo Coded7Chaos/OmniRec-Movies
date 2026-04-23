@@ -1,0 +1,46 @@
+{% load recommender_extras %}
+{% if error %}
+<div class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{{ error }}</div>
+{% elif rows %}
+<div class="space-y-4">
+    <header class="rounded-xl border border-slate-200 bg-indigo-50 p-4">
+        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-700">Comparando</p>
+        <p class="text-base font-semibold text-slate-900">{{ movie.title }}</p>
+        <p class="text-xs text-slate-600">{{ movie.genres }}</p>
+        <p class="mt-2 text-sm text-slate-700">Persona: <span class="font-medium">{{ persona.label }}</span></p>
+    </header>
+    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white">
+        <table class="min-w-full divide-y divide-slate-200 text-sm">
+            <thead class="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
+            <tr>
+                <th class="px-4 py-2 text-left font-medium">Algoritmo</th>
+                <th class="px-4 py-2 text-right font-medium">Nota predicha</th>
+                <th class="px-4 py-2 text-right font-medium">Latencia</th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for r in rows %}
+                <tr class="{% if r.is_best %}bg-emerald-50{% endif %}">
+                    <td class="px-4 py-3">
+                        <p class="font-medium text-slate-900">{{ r.label }} {% if r.is_best %}<span class="ml-1 rounded bg-emerald-600 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">Más alta</span>{% endif %}</p>
+                        <p class="mt-0.5 text-xs text-slate-500">{{ r.hint }}</p>
+                    </td>
+                    <td class="px-4 py-3 text-right tabular-nums">
+                        {% if r.score is None %}
+                            <span class="text-rose-500">— {{ r.error|default:'sin predicción' }}</span>
+                        {% else %}
+                            <span class="font-semibold text-slate-900">{{ r.score|floatformat:2 }}</span>
+                            <span class="ml-2 text-amber-500">{{ r.score|star_rating }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-right tabular-nums text-slate-500">{{ r.elapsed_ms|floatformat:0 }} ms</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="text-xs text-slate-500">La primera llamada por modelo tarda un poco más porque carga el archivo en memoria; las siguientes son casi instantáneas.</p>
+</div>
+{% else %}
+<p class="text-sm text-slate-500">Sin resultados.</p>
+{% endif %}
