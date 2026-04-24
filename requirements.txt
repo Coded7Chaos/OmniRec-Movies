@@ -34,3 +34,4 @@ Django==6.0.*
 django-environ==0.13.*
 inertia-django==1.2.*
 django-vite==3.0.*
+PyMySQL=1.1.2

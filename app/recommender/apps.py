@@ -4,7 +4,7 @@ from django.conf import settings
 
 class RecommenderConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'apps.recommender'
+    name = 'recommender'
     label = 'recommender'
     verbose_name = 'OmniRec testbench'
 

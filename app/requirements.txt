@@ -1,7 +1,0 @@
-django~=5.0
-django-environ
-django-htmx
-django-browser-reload
-pandas
-pyarrow
-scikit-surprise
