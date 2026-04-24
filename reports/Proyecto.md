@@ -2,8 +2,8 @@
 
 Sistema inteligente de recomendación de películas sobre **MovieLens 25M** (GroupLens, noviembre 2019). Sigue el ciclo **CRISP-DM** (seis fases canónicas: Business Understanding → Data Understanding → Data Preparation → Modeling → Evaluation → Deployment).
 
-**Última actualización:** 2026-04-20 — iteración 5: **reorganización de artefactos** — `reports/` queda reservado exclusivamente para documentación (`*.md`); `model_comparison.csv`, `user_clusters.parquet` e `item_clusters.parquet` se mueven a `data/intermediate/` junto al resto de parquets del pipeline. Se ajusta el notebook 03 (escritura en `DATA_INT_DIR`), la app Django (`Registry` lee los 3 archivos desde `data_dir`, se elimina `OMNIREC_REPORTS_DIR`) y la documentación.
-Iteración 4 (UX — personas descriptivas en vez de IDs + UI sólida): [`UX_APP_DJANGO_2026-04-20.md`](./UX_APP_DJANGO_2026-04-20.md). Iteración 3 (construcción inicial de la app Django): [`CAMBIOS_APP_DJANGO_2026-04-20.md`](./CAMBIOS_APP_DJANGO_2026-04-20.md). Iteraciones 1–2 (refactor de notebooks al flujo lineal Fase 1 → Fase 6): [`MEJORAS_NOTEBOOKS.md`](./MEJORAS_NOTEBOOKS.md).
+**Última actualización:** 2026-04-23 — iteración 6: **frontend Inertia.js + React + MUI** — se reemplazó Django templates + HTMX + Tailwind CDN por un stack SPA con **Inertia.js 2** (`inertia-django` + `@inertiajs/react`), **React 18**, **MUI 6** y **Vite 5**. Las 5 páginas (`/`, `/recommend/`, `/predict/`, `/catalog/`, `/clusters/`) ahora montan componentes React con un theme MUI profesional (paleta indigo/emerald sólida, tipografía Inter empaquetada). Las acciones interactivas (Top-N, predicción, búsqueda) pasan por endpoints JSON (`/api/recommend/`, `/api/predict/`, `/api/movies/`). Se eliminaron templates Django, HTMX, Tailwind y `forms.py`; `services.py` queda intacto. Detalle: [`MIGRACION_INERTIA_REACT_MUI_2026-04-23.md`](./MIGRACION_INERTIA_REACT_MUI_2026-04-23.md).
+Iteración 5 (artefactos — `reports/` solo Markdown): se movieron `model_comparison.csv` y los parquets de clusters a `data/intermediate/`. Iteración 4 (UX — personas descriptivas en vez de IDs + UI sólida): [`UX_APP_DJANGO_2026-04-20.md`](./UX_APP_DJANGO_2026-04-20.md). Iteración 3 (construcción inicial de la app Django): [`CAMBIOS_APP_DJANGO_2026-04-20.md`](./CAMBIOS_APP_DJANGO_2026-04-20.md). Iteraciones 1–2 (refactor de notebooks al flujo lineal Fase 1 → Fase 6): [`MEJORAS_NOTEBOOKS.md`](./MEJORAS_NOTEBOOKS.md).
 
 ---
 
@@ -34,20 +34,23 @@ OmniRec-Movies/
 │   ├── CAMBIOS_APP_DJANGO_2026-04-20.md    # construcción inicial de la app Django (iter 3)
 │   └── UX_APP_DJANGO_2026-04-20.md         # refinamiento de UX de la app (iter 4)
 ├── src/                     # Scripts reutilizables (pendiente)
-├── app/                     # Demo Django (Fase 6 — Deployment) ✅
+├── app/                     # Demo Django + Inertia + React + MUI (Fase 6) ✅
 │   ├── manage.py
-│   ├── .env.example         # plantilla para django-environ
-│   ├── core/                # project: settings.py (django-environ), urls.py, asgi/wsgi
+│   ├── .env.example         # plantilla django-environ (+ DJANGO_VITE_DEV_MODE)
+│   ├── templates/layout.html  # layout base usado por inertia-django + django-vite
+│   ├── frontend/            # proyecto Vite + React 18 + MUI 6
+│   │   ├── package.json · vite.config.js
+│   │   ├── src/main.jsx · theme.js · api.js
+│   │   ├── src/components/ (Layout, PageHeader, StatCard, PersonaSelect, MovieAutocomplete)
+│   │   ├── src/pages/ (Home, Recommend, Predict, Catalog, Clusters)
+│   │   └── dist/            # assets compilados (manifest en dist/.vite/)
+│   ├── core/                # project: settings.py (inertia + django-vite), urls.py
 │   └── apps/
 │       └── recommender/     # app principal: testbench de los 5 modelos
 │           ├── apps.py
-│           ├── urls.py      # / /recommend/ /predict/ /search/ /clusters/ /health/
-│           ├── views.py
-│           ├── forms.py
-│           ├── services.py  # Registry lazy-load de pickles + parquets
-│           ├── templatetags/recommender_extras.py
-│           ├── templates/recommender/ (base + 5 páginas + 3 partials HTMX)
-│           └── static/recommender/css/custom.css
+│           ├── urls.py      # páginas Inertia + /api/recommend · /api/predict · /api/movies · /health
+│           ├── views.py     # inertia.render(...) para páginas + endpoints JSON
+│           └── services.py  # Registry lazy-load de pickles + parquets (sin cambios)
 ├── config/                  # Parámetros de experimentos (pendiente)
 ├── requirements.txt
 └── README.md
@@ -275,6 +278,7 @@ Ejecución batch verificada (2026-04-20, iteración 2) para los notebooks 01 y 0
 | 2026-04-20 (iter 3) | **Fase 6 — Testbench Django** | Se construyó la app `apps.recommender` dentro de `app/` con Django 6, django-environ, django-htmx, django-browser-reload y Tailwind (CDN). Expone 5 endpoints: panel de métricas, Top-N por usuario, predicción paralela de los 5 modelos, búsqueda HTMX por título, explorador de clusters. Los artefactos de `models/` y `reports/` se cargan con un `Registry` thread-safe de lazy-load. Detalle: [`CAMBIOS_APP_DJANGO_2026-04-20.md`](./CAMBIOS_APP_DJANGO_2026-04-20.md). |
 | 2026-04-20 (iter 4) | **UX — personas en vez de IDs + UI sólida** | Se eliminan los inputs numéricos de `userId`/`movieId` de la UI. `Registry` ahora deriva ~42 **personas** (top 7 por cluster × 6 clusters) con etiquetas tipo *"Fan de Drama · 312 reseñas · Grupo 3"*; las películas se eligen con **autocomplete HTMX por título**. Se quitaron todos los gradientes — paleta sólida (indigo-600, slate-*, emerald-600, rose-600). Se añadió sección *Cómo funciona* en tres pasos en `/`. Géneros mostrados en español (`Acción · Suspenso · …`). Detalle: [`UX_APP_DJANGO_2026-04-20.md`](./UX_APP_DJANGO_2026-04-20.md). |
 | 2026-04-20 (iter 5) | **Reorganización de artefactos — `reports/` solo Markdown** | `model_comparison.csv`, `user_clusters.parquet` e `item_clusters.parquet` se movieron de `reports/` a `data/intermediate/`. El notebook 03 ahora los escribe en `DATA_INT_DIR` (se eliminó `REPORTS_DIR.mkdir(...)`). La app Django dejó de depender de `OMNIREC_REPORTS_DIR`: `Registry` lee los 3 archivos desde `data_dir`. `settings.py` y `.env.example` se simplificaron. Verificación tras el cambio: `/health/` → `personas: 42`, `/`, `/recommend/`, `/predict/`, `/clusters/` y `/movies/autocomplete/?q=matrix` responden HTTP 200. |
+| 2026-04-23 (iter 6) | **Frontend Inertia.js + React + MUI** | Se migró el frontend de Django templates + HTMX + Tailwind CDN a **Inertia.js 2** + **React 18** + **MUI 6** compilado con **Vite 5**. Las 5 páginas (`/`, `/recommend/`, `/predict/`, `/catalog/`, `/clusters/`) renderizan componentes React con un `ThemeProvider` profesional (paleta indigo/emerald sólida, tipografía Inter empaquetada con `@fontsource/inter`, Autocomplete asíncrono para películas, Rating MUI para scores, LinearProgress para estados de carga). Las acciones interactivas pasan por 3 endpoints JSON (`/api/recommend/`, `/api/predict/`, `/api/movies/`). Backend: `inertia-django` + `django-vite` en settings/middleware; `views.py` reescrito con `inertia.render(...)`; `urls.py` simplificado; `forms.py`, templates HTMX y static Tailwind eliminados; `services.py` intacto. `requirements.txt`: fuera `django-htmx`/`django-browser-reload`/`django-tailwind`/`pytailwindcss`, dentro `inertia-django==1.2.*` y `django-vite==3.0.*`. Verificación: `manage.py check` → 0 issues; `/health/` → `personas: 42`; `/api/recommend/` (SVD n=3) → HTTP 200 en 389 ms; `/api/predict/` → 5 modelos con ganador resaltado; `/api/movies/?q=matrix` → 3 hits. Detalle: [`MIGRACION_INERTIA_REACT_MUI_2026-04-23.md`](./MIGRACION_INERTIA_REACT_MUI_2026-04-23.md). |
 
 ---
 
@@ -296,21 +300,24 @@ Ejecución batch verificada (2026-04-20, iteración 2) para los notebooks 01 y 0
 
 ---
 
-## 11. App Django — Testbench de modelos (Fase 6 · 2026-04-20)
+## 11. App — Testbench de modelos (Fase 6 · 2026-04-23)
 
-*Construida en iter 3 y refinada en iter 4. Las secciones que siguen describen el estado actual de la app tras la iter 4.*
+*Construida en iter 3, refinada en iter 4, artefactos reubicados en iter 5 y migrada a Inertia + React + MUI en iter 6. Esta sección describe el estado actual.*
 
-Demo interactiva ubicada en `app/`. Carga los artefactos producidos por los notebooks 02 y 03 (pickles en `models/`; parquets y CSV en `data/intermediate/`) y los expone detrás de un dashboard Tailwind + HTMX. La UI no expone IDs al usuario final: las personas tienen etiquetas descriptivas derivadas de su cluster y género favorito, y las películas se eligen con autocomplete por título.
+Demo interactiva ubicada en `app/`. Carga los artefactos producidos por los notebooks 02 y 03 (pickles en `models/`; parquets y CSV en `data/intermediate/`) y los expone con un **SPA** renderizado por **React + MUI** sobre Django mediante **Inertia.js**. La UI no expone IDs al usuario final: las personas tienen etiquetas descriptivas derivadas de su cluster y género favorito, y las películas se eligen con `MUI Autocomplete` asíncrono contra un endpoint JSON.
 
 ### 11.1 Stack
 
 | Capa | Librería | Rol |
 |---|---|---|
-| Framework | `Django 6.0` | Request/response, templating, admin opcional. |
-| Config | `django-environ 0.13` | Lee `.env` → `SECRET_KEY`, `DEBUG`, rutas a `models/` y `data/intermediate/`. |
-| Interactividad | `django-htmx 1.27` | Top-N, predicción y búsqueda son respuestas HTML parciales, sin JS custom. |
-| DX | `django-browser-reload 1.21` | Recarga automática en desarrollo. |
-| UI | `Tailwind CSS` (CDN + Google Fonts Inter) | Estilizado sin build-step. `django-tailwind` + `pytailwindcss` quedan instalados para la ruta de compilación standalone. |
+| Framework | `Django 6.0` | Request/response, router, sesiones, admin opcional. |
+| Config | `django-environ 0.13` | Lee `.env` → `SECRET_KEY`, `DEBUG`, rutas a `models/` y `data/intermediate/`, `DJANGO_VITE_DEV_MODE`. |
+| Adaptador SPA | `inertia-django 1.2` | `inertia.render(request, 'Component', props={...})`; middleware detecta `X-Inertia`. |
+| Bundler/asset | `django-vite 3.0` | Inyecta `<script>`/`<link>` leyendo `frontend/dist/.vite/manifest.json`. |
+| Cliente SPA | `@inertiajs/react 2.0` | `createInertiaApp`, `<Link>`, `usePage()`. |
+| UI | `@mui/material 6.1` + `@mui/icons-material` + `@emotion/react` | Design system (AppBar, Autocomplete, Rating, Table, Chip, LinearProgress, Grid v2). Tema Inter 400–800 + paleta indigo/emerald sólida. |
+| Fuente | `@fontsource/inter 5.1` | Inter empaquetada como módulo (sin CDN). |
+| Build | `Vite 5.4` + `@vitejs/plugin-react 4.3` | Dev server con HMR + producción con hashes. |
 | Cómputo | `pandas 2.2`, `polars 1.9`, `scikit-surprise 1.1.4` | Lectura de parquets, inferencia de los modelos SVD/KNN/NMF. |
 
 ### 11.2 Estructura
@@ -319,72 +326,102 @@ Demo interactiva ubicada en `app/`. Carga los artefactos producidos por los note
 app/
 ├── manage.py
 ├── .env.example
+├── templates/
+│   └── layout.html             # base Inertia (carga vite_hmr_client + vite_asset "src/main.jsx")
+├── frontend/
+│   ├── package.json · vite.config.js
+│   ├── src/
+│   │   ├── main.jsx            # createInertiaApp + ThemeProvider MUI
+│   │   ├── theme.js            # createTheme MUI (paleta, tipografía, overrides)
+│   │   ├── api.js              # postJson / getJson
+│   │   ├── components/
+│   │   │   ├── Layout.jsx      # AppBar sticky + Drawer mobile + Container
+│   │   │   ├── PageHeader.jsx
+│   │   │   ├── StatCard.jsx
+│   │   │   ├── PersonaSelect.jsx
+│   │   │   └── MovieAutocomplete.jsx  # async, debounce 250ms
+│   │   └── pages/
+│   │       ├── Home.jsx · Recommend.jsx · Predict.jsx
+│   │       └── Catalog.jsx · Clusters.jsx
+│   └── dist/                   # generado por `npm run build`
 ├── core/
-│   ├── settings.py   # django-environ, OMNIREC_MODELS_DIR + OMNIREC_DATA_DIR, INSTALLED_APPS con apps.recommender
-│   ├── urls.py       # root URLconf + __reload__/
+│   ├── settings.py             # inertia, django_vite, INERTIA_LAYOUT, DJANGO_VITE
+│   ├── urls.py                 # root URLconf (admin + recommender)
 │   ├── asgi.py · wsgi.py
-├── apps/
-│   ├── __init__.py
-│   └── recommender/
-│       ├── apps.py             # RecommenderConfig — warmup opcional
-│       ├── urls.py             # 9 rutas (páginas + partials HTMX + /health/)
-│       ├── views.py            # controladores GET/POST
-│       ├── forms.py            # TopNForm, PredictForm (clases Tailwind aplicadas a los widgets)
-│       ├── services.py         # `Registry` singleton thread-safe — carga pickles/parquets bajo demanda
-│       ├── templatetags/recommender_extras.py   # filtros `get` y `star_rating`
-│       ├── templates/recommender/
-│       │   ├── base.html       # layout + header + Tailwind + HTMX
-│       │   ├── home.html       # panel de métricas
-│       │   ├── recommend.html  # formulario Top-N + contenedor HTMX
-│       │   ├── predict.html    # formulario predicción + contenedor HTMX
-│       │   ├── search.html     # autocompletado HTMX
-│       │   ├── clusters.html   # dashboard de clusters
-│       │   └── partials/       # recommendations.html · prediction_row.html · movie_hits.html
-│       └── static/recommender/css/custom.css   # hook del indicador HTMX
+└── apps/
+    ├── __init__.py
+    └── recommender/
+        ├── apps.py             # RecommenderConfig — warmup opcional
+        ├── urls.py             # 5 páginas Inertia + 3 endpoints JSON + /health/
+        ├── views.py            # inertia.render(...) + api_recommend / api_predict / api_movies
+        └── services.py         # Registry singleton thread-safe — pickles/parquets lazy
 ```
 
 ### 11.3 Endpoints
 
-| Método | Ruta | Vista | Descripción |
+**Páginas Inertia** (devuelven HTML con `<div id="app" data-page="…">` + bundle React):
+
+| Método | Ruta | Vista | Componente React | Descripción |
+|---|---|---|---|---|
+| GET | `/` | `home` | `Home` | KPIs (`StatCard`) + sección *Cómo funciona* + tabla de métricas con Chips "Más preciso" y "Mejor orden". |
+| GET | `/recommend/` | `recommend` | `Recommend` | Form con `PersonaSelect` + `TextField select` (algoritmo) + `TextField` número. Resultado en `List` con `Avatar` numerado y `Rating` del score. |
+| GET | `/predict/` | `predict` | `Predict` | Form con `PersonaSelect` + `MovieAutocomplete`. Tabla de los 5 modelos con `Chip` verde "Más alta". |
+| GET | `/catalog/` | `catalog` | `Catalog` | Buscador + grid de cards con score bayesiano. |
+| GET | `/clusters/` | `clusters` | `Clusters` | 6 cards (1 por cluster) con chips de personas/películas y top-5 títulos. |
+
+**Endpoints JSON** (consumidos desde React con `fetch`):
+
+| Método | Ruta | Cuerpo / query | Respuesta |
 |---|---|---|---|
-| GET | `/` | `home` | Panel: sección *Cómo funciona* (3 pasos) + KPIs + tabla de métricas (leída desde `data/intermediate/model_comparison.csv`) con resaltado de mejor RMSE y mejor NDCG@10. |
-| GET | `/recommend/` | `recommend` | Formulario para pedir Top-N — persona (select con etiquetas humanas) + algoritmo + cantidad. |
-| POST | `/recommend/run/` | `recommend_run` | Partial con las N películas recomendadas, tiempo y metadatos de la persona. |
-| GET | `/predict/` | `predict` | Formulario — persona + buscador de películas con autocomplete HTMX. |
-| POST | `/predict/run/` | `predict_run` | Partial con la predicción de los 5 modelos sobre el par elegido. Resalta cuál dio la nota más alta. |
-| GET | `/catalog/` | `search` | Explorador del catálogo (antes `/search/`). |
-| GET | `/catalog/results/` | `search_results` | Partial con hits + score bayesiano. |
-| GET | `/movies/autocomplete/` | `movie_autocomplete` | Partial (≤8 hits) consumido por el picker de películas en `/predict/`. |
-| GET | `/clusters/` | `clusters` | Resumen de los 6 grupos (usuarios + películas). |
-| GET | `/health/` | `health` | JSON con estado de carga (incluye `personas`). |
+| POST | `/api/recommend/` | JSON `{user_id, model_key, n}` | `{recs, persona, model_label, elapsed_ms, n}` |
+| POST | `/api/predict/` | JSON `{user_id, movie_id}` | `{persona, movie, rows, best_key}` |
+| GET | `/api/movies/?q=&limit=` | query string | `{query, hits: [{movieId, title, genres, bayesian}]}` |
+| GET | `/health/` | — | `{status, models_loaded, sample_users, sample_movies, personas}` |
 
 ### 11.4 Estrategia de carga de modelos y personas
 
 `services.Registry` es un dataclass thread-safe con `threading.Lock`. Los artefactos se cargan **la primera vez que se piden** (lazy) y quedan cacheados en memoria. Razón: el `knn_model.pkl` pesa **305 MB** y no conviene bloquear el arranque. Si se necesita pre-cargar SVD/NMF/Baseline + las personas al inicio, basta con exportar `OMNIREC_EAGER_LOAD=True`.
 
-**Personas** (iter 4): el primer acceso a `/recommend/` o `/predict/` dispara el cálculo de `registry.personas()`. Une `ratings_sample_5pct.parquet` con `movies_sample.parquet` y `user_clusters.parquet` (todos bajo `data/intermediate/`) para derivar, por usuario: cantidad de reseñas, rating medio, género favorito (primer género del título más votado). Toma los top-7 por cluster × 6 clusters → **~42 personas** con etiquetas tipo *"Fan de Drama · 312 reseñas · Grupo 3"*. El resultado se cachea en `Registry._personas`.
+**Personas** (iter 4, sin cambios en iter 6): el primer acceso a `/recommend/` o `/predict/` dispara el cálculo de `registry.personas()`. Une `ratings_sample_5pct.parquet` con `movies_sample.parquet` y `user_clusters.parquet` (todos bajo `data/intermediate/`) para derivar, por usuario: cantidad de reseñas, rating medio, género favorito (primer género del título más votado). Toma los top-7 por cluster × 6 clusters → **~42 personas** con etiquetas tipo *"Fan de Drama · 312 reseñas · Grupo 3"*. El resultado se cachea en `Registry._personas` y viaja como prop de Inertia a las páginas `Recommend`/`Predict`.
 
 ### 11.5 Cómo correrlo
 
 ```bash
-# Una sola vez:
-cp app/.env.example app/.env   # opcional — los defaults ya apuntan a los artefactos del repo
-cd app
-../venv/bin/python manage.py migrate --noinput
+# Dependencias Python:
+source venv/bin/activate
+pip install -r requirements.txt    # incluye inertia-django y django-vite
 
-# Desarrollo:
-../venv/bin/python manage.py runserver 127.0.0.1:8000
-# Abrir http://127.0.0.1:8000/
+# Dependencias JS + build:
+cd app/frontend
+npm install                        # ~30 s, 169 paquetes
+npm run build                      # produce dist/.vite/manifest.json + assets hasheados
+
+# Django:
+cd ..
+python manage.py migrate --noinput
+python manage.py runserver         # http://127.0.0.1:8000/
 ```
 
-### 11.6 Verificación (ejecutada el 2026-04-20, iter 4)
+**Dev con HMR (opcional)** — recarga instantánea al editar JSX:
+
+```bash
+# Terminal 1
+cd app/frontend && npm run dev     # Vite en :5173
+
+# Terminal 2
+cd app && DJANGO_VITE_DEV_MODE=True python manage.py runserver
+```
+
+### 11.6 Verificación (ejecutada el 2026-04-23, iter 6)
 
 - `python manage.py check` → 0 issues.
-- `GET /health/` → `{"status": "ok", "sample_users": 8126, "sample_movies": 5915, "models_loaded": 1, "personas": 42}`.
-- Todas las páginas (`/`, `/recommend/`, `/predict/`, `/catalog/`, `/clusters/`, `/health/`) devolvieron HTTP 200.
-- `GET /movies/autocomplete/?q=matrix` → partial HTML con 8 hits, incluyendo *Matrix, The (1999)* con score 4.16.
-- `POST /recommend/run/` con persona id 30024 + modelo SVD + n=5 → HTTP 200, Top-5 renderizado.
-- `POST /predict/run/` con persona id 30024 + *The Matrix (1999)* → HTTP 200, tabla con los 5 modelos + badge verde *"Más alta"* en el ganador.
+- `GET /health/` → `{"status":"ok","models_loaded":0,"sample_users":8126,"sample_movies":5915,"personas":42}`.
+- Todas las páginas (`/`, `/recommend/`, `/predict/`, `/catalog/`, `/clusters/`) devolvieron HTTP 200 con `<div id="app" data-page="…">` y el bundle `/static/assets/main-*.js` enlazado.
+- `GET /recommend/` con header `X-Inertia: true` → respuesta JSON Inertia (`component`, `props`, `url`, `version`) — confirma el funcionamiento del middleware.
+- `GET /api/movies/?q=matrix&limit=3` → 3 hits, primer resultado *Matrix, The (1999)* con score 4.157.
+- `POST /api/recommend/` con persona 30024 + SVD + n=3 → HTTP 200, Top-3 en **388.7 ms** incluyendo primera carga del pickle.
+- `POST /api/predict/` con persona 30024 + *The Matrix (1999)* → HTTP 200, 5 filas con `baseline 4.157`, `svd 3.969`, `knn 3.848` (tras cargar 305 MB en 264 ms).
+- Build Vite: `dist/assets/main-*.js` = 684.52 kB (gzip 216.44 kB); `main-*.css` = 12.15 kB. Build en 1.14 s.
 
 ---
 

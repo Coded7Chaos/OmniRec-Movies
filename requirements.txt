@@ -26,13 +26,11 @@ joblib
 # =============================================================================
 # Demo Django (CRISP-DM Fase 6 — Deployment) en `app/`
 # =============================================================================
+# Stack: Django + Inertia.js + React 18 + MUI 6. El frontend vive en
+# `app/frontend/` y se compila con Vite (`npm run build`). django-vite
+# lee `frontend/dist/.vite/manifest.json` para servir los assets
+# correctos con el hash apropiado.
 Django==6.0.*
 django-environ==0.13.*
-django-htmx==1.27.*
-django-browser-reload==1.21.*
-# django-tailwind + pytailwindcss permiten compilar CSS con el CLI standalone
-# (sin npm). El testbench actual usa Tailwind vía CDN en `base.html` para
-# evitar el build-step; para producción se recomienda crear el theme app con
-# `python manage.py tailwind init theme` y compilar los assets.
-django-tailwind==4.4.*
-pytailwindcss==0.3.*
+inertia-django==1.2.*
+django-vite==3.0.*
