@@ -283,6 +283,56 @@ class Registry:
         path = self.data_dir / 'model_comparison.csv'
         return pd.read_csv(path).to_dict(orient='records') if path.exists() else []
 
+    def available_genres(self) -> list[dict]:
+        """Calcula dinámicamente la lista de géneros y sus conteos desde el catálogo."""
+        df = self.movies_df()
+        # Separar géneros por el pipe '|' y explotarlos en filas individuales
+        all_genres = df['genres'].str.split('|').explode()
+        counts = all_genres.value_counts()
+        
+        result = []
+        for genre_raw, count in counts.items():
+            if not genre_raw or genre_raw == '(no genres listed)':
+                continue
+            result.append({
+                'label': GENRE_ES.get(genre_raw, genre_raw),
+                'raw': genre_raw,
+                'count': int(count)
+            })
+        # Ordenar por los más frecuentes
+        return sorted(result, key=lambda x: x['count'], reverse=True)
+
+    def movie_lookup(self, query: str = '', genre: str | None = None, limit: int = 18, sort: str = 'score') -> list[dict]:
+        """Realiza búsquedas y filtrado de películas para el catálogo."""
+        df = self.movies_df()
+        
+        # Filtro por Género (usamos el nombre en inglés que es el 'raw')
+        if genre:
+            df = df[df['genres'].str.contains(genre, case=False, na=False)]
+            
+        # Filtro por Título
+        if query:
+            df = df[df['title'].str.contains(query, case=False, na=False)]
+            
+        # Ordenamiento
+        if sort == 'score':
+            # Intentamos ordenar por score bayesiano si está disponible
+            scores = self.baseline().get('bayesian_score_by_movieId', {})
+            df['tmp_score'] = df.index.map(lambda x: scores.get(x, 0))
+            df = df.sort_values('tmp_score', ascending=False)
+        else:
+            df = df.sort_values('title')
+            
+        hits = []
+        for mid, row in df.head(limit).iterrows():
+            hits.append({
+                'movieId': int(mid),
+                'title': row['title'],
+                'genres': row['genres'],
+                'score': round(float(scores.get(mid, 0)), 2) if sort == 'score' else None
+            })
+        return hits
+
 registry = Registry(
     models_dir=Path(settings.OMNIREC_MODELS_DIR),
     data_dir=Path(settings.OMNIREC_DATA_DIR)

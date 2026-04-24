@@ -15,4 +15,5 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     
     path('api/rate/', views.rate_movie, name='rate_movie'),
+    path('api/movies/', views.api_movies, name='api_movies'),
 ]

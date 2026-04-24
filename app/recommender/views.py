@@ -90,6 +90,7 @@ def catalog(request):
         **_shell(request, 'catalog'),
         'featured': movies,
         'userRatings': user_ratings,
+        'genres': registry.available_genres(), # <--- Enviamos los géneros reales
     })
 
 @ensure_csrf_cookie
@@ -132,6 +133,16 @@ def rate_movie(request):
             return JsonResponse({'status': 'ok'})
         except Exception as e: return JsonResponse({'error': str(e)}, status=400)
     return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+def api_movies(request):
+    """Endpoint para búsqueda y filtrado dinámico."""
+    query = request.GET.get('q', '')
+    genre = request.GET.get('genre') # Este debe ser el nombre en inglés (raw)
+    sort = request.GET.get('sort', 'score')
+    limit = int(request.GET.get('limit', 18))
+    
+    hits = registry.movie_lookup(query=query, genre=genre, limit=limit, sort=sort)
+    return JsonResponse({'hits': hits})
 
 def lab(request):
     return inertia_render(request, 'Lab', props={**_shell(request, 'lab'), 'metrics': registry.metrics()})

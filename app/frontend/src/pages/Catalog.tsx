@@ -30,13 +30,13 @@ const SORT_OPTIONS = [
 export default function Catalog({ genres = [], featured = [], userRatings = [] }) {
   const { auth }: any = usePage().props;
   const [query, setQuery] = React.useState('');
-  const [genre, setGenre] = React.useState(null);
+  const [selectedGenreRaw, setSelectedGenreRaw] = React.useState(null);
   const [sort, setSort] = React.useState('score');
   const [results, setResults] = React.useState(featured);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
 
-  const hasFilters = query.trim().length >= 2 || genre || sort !== 'score';
+  const hasFilters = query.trim().length >= 2 || selectedGenreRaw || sort !== 'score';
 
   const getInitialRating = (movieId) => {
     const r = userRatings.find(r => r.movie_id === movieId);
@@ -54,7 +54,7 @@ export default function Catalog({ genres = [], featured = [], userRatings = [] }
     const handle = setTimeout(() => {
       const params = new URLSearchParams();
       if (query.trim().length >= 2) params.set('q', query);
-      if (genre) params.set('genre', genre);
+      if (selectedGenreRaw) params.set('genre', selectedGenreRaw);
       params.set('sort', sort);
       params.set('limit', '24');
       getJson(`/api/movies/?${params.toString()}`)
@@ -74,11 +74,11 @@ export default function Catalog({ genres = [], featured = [], userRatings = [] }
       cancelled = true;
       clearTimeout(handle);
     };
-  }, [query, genre, sort, featured, hasFilters]);
+  }, [query, selectedGenreRaw, sort, featured, hasFilters]);
 
   const clearAll = () => {
     setQuery('');
-    setGenre(null);
+    setSelectedGenreRaw(null);
     setSort('score');
   };
 
@@ -151,17 +151,17 @@ export default function Catalog({ genres = [], featured = [], userRatings = [] }
           <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
             <Chip
               label="Todos"
-              onClick={() => setGenre(null)}
-              color={!genre ? 'primary' : 'default'}
-              variant={!genre ? 'filled' : 'outlined'}
+              onClick={() => setSelectedGenreRaw(null)}
+              color={!selectedGenreRaw ? 'primary' : 'default'}
+              variant={!selectedGenreRaw ? 'filled' : 'outlined'}
             />
             {genres.slice(0, 18).map((g) => (
               <Chip
-                key={g.label}
+                key={g.raw}
                 label={`${g.label} · ${g.count}`}
-                onClick={() => setGenre(g.label === genre ? null : g.label)}
-                color={genre === g.label ? 'primary' : 'default'}
-                variant={genre === g.label ? 'filled' : 'outlined'}
+                onClick={() => setSelectedGenreRaw(g.raw === selectedGenreRaw ? null : g.raw)}
+                color={selectedGenreRaw === g.raw ? 'primary' : 'default'}
+                variant={selectedGenreRaw === g.raw ? 'filled' : 'outlined'}
               />
             ))}
           </Stack>
@@ -175,8 +175,12 @@ export default function Catalog({ genres = [], featured = [], userRatings = [] }
         <Typography variant="h6">
           {hasFilters ? `${results.length} resultados` : 'Películas destacadas'}
         </Typography>
-        {genre && (
-          <Chip label={`Filtrando: ${genre}`} onDelete={() => setGenre(null)} color="primary" />
+        {selectedGenreRaw && (
+          <Chip 
+            label={`Filtrando: ${genres.find(g => g.raw === selectedGenreRaw)?.label}`} 
+            onDelete={() => setSelectedGenreRaw(null)} 
+            color="primary" 
+          />
         )}
       </Stack>
 
