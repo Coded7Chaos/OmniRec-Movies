@@ -2,7 +2,7 @@
 
 Sistema inteligente de recomendación de películas sobre **MovieLens 25M** (GroupLens, noviembre 2019). El proyecto sigue el ciclo **CRISP-DM** completo (Business Understanding → Data Understanding → Data Preparation → Modeling → Evaluation → Deployment) y combina tres enfoques complementarios:
 
-1. **Estadístico / Machine Learning clásico** (Fases 1–5) — popularidad bayesiana, KNN item-based, SVD, NMF y un AutoML con fallback automático. Completado.
+1. **Estadístico / Machine Learning clásico** (Fases 1–5) — popularidad bayesiana, SVD y NMF sobre una muestra estratificada al 60 %, con KNN item-based conservado como benchmark al 10 %. Completado.
 2. **Aprendizaje profundo con embeddings** (Fase 6, parte 1) — NCF / Two-Tower. Pendiente.
 3. **Recuperación semántica / RAG** sobre tags y genome-scores (Fase 6, parte 2). Pendiente.
 
@@ -30,9 +30,11 @@ OmniRec-Movies/
 ├── data/
 │   ├── ml-25m/                           # Dataset original (ratings, movies, tags, genome-*)
 │   └── intermediate/                     # Parquets / CSV generados por el pipeline (notebooks 02 y 03)
-│       ├── ratings_sample_5pct.parquet   # 1.15 M ratings (5 % estratificado)        ← nb 02
-│       ├── movies_sample.parquet         # 5 915 películas (tras cold-start ≥ 20)    ← nb 02
-│       ├── genome_scores_sample.parquet  # 6.67 M pares filtrados                     ← nb 02
+│       ├── ratings_prepared_60pct.parquet      # muestra principal para Baseline/SVD/NMF ← nb 02
+│       ├── movies_prepared_60pct.parquet       # catálogo asociado al 60 %                ← nb 02
+│       ├── genome_scores_prepared_60pct.parquet# genome scores del 60 %                   ← nb 02
+│       ├── ratings_knn_10pct.parquet           # muestra KNN benchmark                     ← nb 02
+│       ├── movies_knn_10pct.parquet            # catálogo asociado al 10 %                 ← nb 02
 │       ├── genome_tags.parquet           # 1 128 tags                                 ← nb 02
 │       ├── model_comparison.csv          # RMSE / MAE / P@K / R@K / NDCG@10 / tiempo  ← nb 03
 │       ├── user_clusters.parquet         # Segmentación de usuarios (KMeans sobre SVD) ← nb 03
@@ -144,8 +146,8 @@ El orden **01 → 02 → 03** es lineal y reproduce las fases 1 a 5 de CRISP-DM.
 
 | # | Notebook | Fase CRISP-DM | Salida principal |
 |---|---|---|---|
-| 01 | `01_Business_Understanding_and_EDA.ipynb` | 1 + 2 | 14 bloques de EDA con insights de negocio que justifican cold-start ≥ 20 y modelos latentes. |
-| 02 | `02_Data_Sampling_and_Cleaning.ipynb` | 3 | 4 parquets en `data/intermediate/` (muestreo estratificado 5 %, L1 distance = 0.0323). |
+| 01 | `01_Business_Understanding_and_EDA.ipynb` | 1 + 2 | 14 bloques de EDA con insights de negocio sobre long tail, sparsity y evolución temporal. |
+| 02 | `02_Data_Sampling_and_Cleaning.ipynb` | 3 | Parquets del 60 % principal y del 10 % para KNN, sin filtro global de cold-start. |
 | 03 | `03_ML_Baseline_AutoML.ipynb` | 4 + 5 | 5 `*.pkl` en `models/` + `data/intermediate/model_comparison.csv`, `user_clusters.parquet`, `item_clusters.parquet`. |
 
 El notebook 03 es requisito indispensable para que la app Django funcione (carga los pickles y parquets).
@@ -154,7 +156,7 @@ El notebook 03 es requisito indispensable para que la app Django funcione (carga
 
 ## 5. Ejecución de la app Django (testbench de modelos)
 
-La app permite probar los 5 modelos entrenados contra cualquier usuario del sample. No expone IDs al usuario: genera **42 personas** (6 clusters × top-7 usuarios) con etiquetas del tipo *"Fan de Acción · 1 909 reseñas · Grupo 0"*, y permite elegir películas por **título con autocompletado**.
+La app permite probar los modelos entrenados contra cualquier usuario de la muestra principal del 60 %. No expone IDs al usuario: genera **42 personas** (6 clusters × top-7 usuarios) con etiquetas del tipo *"Fan de Acción · 1 909 reseñas · Grupo 0"*, y permite elegir películas por **título con autocompletado**.
 
 ### 5.1 Configuración
 
@@ -171,7 +173,7 @@ Editá `.env` si querés cambiar las rutas por defecto. Las variables soportadas
 | `DJANGO_DEBUG` | `True` | Modo debug. |
 | `DJANGO_ALLOWED_HOSTS` | `*` | Hosts permitidos (coma-separado). |
 | `OMNIREC_MODELS_DIR` | `<repo>/models` | Dónde están los `*.pkl`. |
-| `OMNIREC_DATA_DIR` | `<repo>/data/intermediate` | Dónde están los parquets de la muestra **y** los artefactos del notebook 03 (`model_comparison.csv`, `user_clusters.parquet`, `item_clusters.parquet`). |
+| `OMNIREC_DATA_DIR` | `<repo>/data/intermediate` | Dónde están los parquets preparados (`ratings_prepared_60pct.parquet`, `movies_prepared_60pct.parquet`) y los artefactos del notebook 03. |
 | `OMNIREC_EAGER_LOAD` | `False` | Si es `True`, precarga SVD/NMF/Baseline al iniciar (KNN siempre es lazy por peso: 305 MB). |
 
 ### 5.2 Migraciones iniciales
@@ -215,7 +217,7 @@ Abrí <http://127.0.0.1:8000/> en el navegador.
 
 ## 6. Modelos entrenados y métricas
 
-Los 5 modelos se entrenan en el notebook 03 sobre el sample estratificado (~1.15 M ratings, split 80/20 aleatorio con `random_state=42`). Métricas sobre el 20 % de test:
+Los modelos se entrenan en el notebook 03 con un **split temporal por usuario**. Baseline, SVD, NMF y AutoML corren sobre la muestra principal del `60 %`; KNN se conserva como benchmark metodológico sobre `10 %`.
 
 | Modelo | RMSE | MAE | P@10 | R@10 | NDCG@10 | Tiempo (s) |
 |---|---:|---:|---:|---:|---:|---:|
@@ -225,7 +227,7 @@ Los 5 modelos se entrenan en el notebook 03 sobre el sample estratificado (~1.15
 | NMF | 0.863 | 0.657 | 0.587 | 0.310 | 0.805 | 7.2 |
 | Baseline (Pop. Bayesiana) | 0.958 | 0.741 | 0.612 | 0.215 | 0.812 | 0.8 |
 
-KNN item-based gana en todas las métricas de calidad, al costo de ser el modelo más pesado en RAM (~305 MB). SVD es el mejor compromiso velocidad/calidad. El AutoML detecta `auto-surprise` y, si no está instalado, cae automáticamente a un `GridSearchCV` multi-algoritmo (metodológicamente equivalente, sólo más lento).
+SVD es el candidato principal por equilibrio entre calidad, velocidad y reutilización de embeddings. KNN se mantiene sólo como benchmark sobre `10 %` porque escala mal cuando crece el catálogo. El AutoML detecta `auto-surprise` y, si no está instalado, cae automáticamente a un `GridSearchCV` sobre los modelos del pipeline principal.
 
 ---
 

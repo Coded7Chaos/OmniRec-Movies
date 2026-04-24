@@ -261,7 +261,7 @@ class Registry:
         if self._movies is None:
             with self._lock:
                 if self._movies is None:
-                    path = self.data_dir / 'movies_sample.parquet'
+                    path = self.data_dir / 'movies_prepared_60pct.parquet'
                     df = pd.read_parquet(path)
                     df['movieId'] = df['movieId'].astype('int64')
                     self._movies = df.set_index('movieId', drop=False)
@@ -271,7 +271,7 @@ class Registry:
         if self._ratings is None:
             with self._lock:
                 if self._ratings is None:
-                    path = self.data_dir / 'ratings_sample_5pct.parquet'
+                    path = self.data_dir / 'ratings_prepared_60pct.parquet'
                     self._ratings = pd.read_parquet(path)
         return self._ratings
 
