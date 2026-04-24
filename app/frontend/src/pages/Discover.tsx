@@ -17,14 +17,20 @@ import { usePage, router } from '@inertiajs/react';
 import PageHeader from '../components/PageHeader';
 import MovieCard from '../components/MovieCard';
 import SectionTitle from '../components/SectionTitle';
+import { MovieCardSkeleton } from '../components/Skeletons';
 
 export default function Discover({ recommendations = [], userRatings = [], models = [], currentModel = 'svd' }) {
   const { auth }: any = usePage().props;
   const [modelKey, setModelKey] = React.useState(currentModel);
+  const [loading, setLoading] = React.useState(false);
 
   const handleModelChange = (key) => {
     setModelKey(key);
-    router.get('/discover/', { model: key }, { preserveState: true });
+    setLoading(true);
+    router.get('/discover/', { model: key }, { 
+      preserveState: true,
+      onFinish: () => setLoading(false)
+    });
   };
 
   const getInitialRating = (movieId) => {
@@ -80,7 +86,15 @@ export default function Discover({ recommendations = [], userRatings = [], model
           description={`Basado en el modelo ${models.find(m => m.key === modelKey)?.label}.`}
         />
 
-        {recommendations.length === 0 ? (
+        {loading ? (
+          <Grid container spacing={{ xs: 2, md: 3 }}>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Grid key={i} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+                <MovieCardSkeleton />
+              </Grid>
+            ))}
+          </Grid>
+        ) : recommendations.length === 0 ? (
           <Alert severity="info" sx={{ py: 3 }}>
             Todavía no tenemos suficientes datos sobre tus gustos. 
             <Button href="/catalog/" variant="text" sx={{ ml: 1, fontWeight: 700 }}>

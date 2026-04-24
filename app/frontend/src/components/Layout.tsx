@@ -24,6 +24,9 @@ import MovieFilterRoundedIcon from '@mui/icons-material/MovieFilterRounded';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import LoginRoundedIcon from '@mui/icons-material/LoginRounded';
+import { router } from '@inertiajs/react';
+import { MovieCardSkeleton, ProfileSkeleton } from './Skeletons';
+import { Skeleton } from '@mui/material';
 
 function Brand({ dense = false }) {
   return (
@@ -64,6 +67,25 @@ function Brand({ dense = false }) {
   );
 }
 
+function GlobalSkeleton() {
+  return (
+    <Box>
+      <Box sx={{ mb: 6 }}>
+        <Skeleton variant="text" width="10%" height={24} sx={{ mb: 1 }} />
+        <Skeleton variant="text" width="40%" height={60} sx={{ mb: 2 }} />
+        <Skeleton variant="text" width="60%" height={30} />
+      </Box>
+      <Grid container spacing={3}>
+        {Array.from({ length: 8 }).map((_, i) => (
+          <Grid key={i} size={{ xs: 6, sm: 4, md: 3 }}>
+            <MovieCardSkeleton />
+          </Grid>
+        ))}
+      </Grid>
+    </Box>
+  );
+}
+
 export default function Layout({ children }) {
   const { props }: any = usePage();
   const navigation = (props.navigation as any[]) || [];
@@ -72,6 +94,30 @@ export default function Layout({ children }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [targetPath, setTargetPath] = React.useState('');
+
+  React.useEffect(() => {
+    // router.on retorna una función de desuscripción
+    const unbindStart = router.on('start', (event: any) => {
+      // visit.url es un objeto URL, lo convertimos a string (pathname)
+      const path = event.detail.visit.url.pathname || '';
+      setTargetPath(path);
+      setLoading(true);
+    });
+
+    const unbindFinish = router.on('finish', () => {
+      setLoading(false);
+      setTargetPath('');
+    });
+
+    return () => {
+      unbindStart();
+      unbindFinish();
+    };
+  }, []);
+
+  const isProfileLoading = targetPath.includes('/profile');
 
   const navButtons = (
     <Stack direction="row" spacing={0.5} alignItems="center">
@@ -199,7 +245,11 @@ export default function Layout({ children }) {
       </Drawer>
 
       <Box component="main" sx={{ flex: 1, py: { xs: 4, md: 6 } }}>
-        <Container maxWidth="xl">{children}</Container>
+        <Container maxWidth="xl">
+          {loading ? (
+             isProfileLoading ? <ProfileSkeleton /> : <GlobalSkeleton />
+          ) : children}
+        </Container>
       </Box>
 
       <Box

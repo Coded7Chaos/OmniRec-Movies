@@ -22,6 +22,7 @@ import ModelTrainingRoundedIcon from '@mui/icons-material/ModelTrainingRounded';
 
 import MovieCard from '../components/MovieCard';
 import SectionTitle from '../components/SectionTitle';
+import { StatCardSkeleton, MovieCardSkeleton } from '../components/Skeletons';
 
 const fmt = (x) => (typeof x === 'number' ? x.toLocaleString('es-BO') : x);
 
@@ -135,33 +136,41 @@ export default function Home({ featured = [], stats = {} as any, communities = [
           </Grid>
           <Grid size={{ xs: 12, md: 5 }}>
             <Stack spacing={2}>
-              {[
-                { label: 'Películas en catálogo', value: fmt(stats.movies) },
-                { label: 'Reseñas analizadas', value: fmt(stats.ratings) },
-                { label: 'Comunidades de gustos', value: fmt(stats.communities) },
-              ].map((s) => (
-                <Stack
-                  key={s.label}
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  sx={{
-                    bgcolor: 'background.default',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: 1.5,
-                    px: 2.5,
-                    py: 1.5,
-                  }}
-                >
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                    {s.label}
-                  </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 800 }}>
-                    {s.value}
-                  </Typography>
-                </Stack>
-              ))}
+              {Object.keys(stats).length === 0 ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <Box key={i} sx={{ height: 80 }}>
+                    <StatCardSkeleton />
+                  </Box>
+                ))
+              ) : (
+                [
+                  { label: 'Películas en catálogo', value: fmt(stats.movies) },
+                  { label: 'Reseñas analizadas', value: fmt(stats.ratings) },
+                  { label: 'Comunidades de gustos', value: fmt(stats.communities) },
+                ].map((s) => (
+                  <Stack
+                    key={s.label}
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    sx={{
+                      bgcolor: 'background.default',
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: 1.5,
+                      px: 2.5,
+                      py: 1.5,
+                    }}
+                  >
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                      {s.label}
+                    </Typography>
+                    <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                      {s.value}
+                    </Typography>
+                  </Stack>
+                ))
+              )}
             </Stack>
           </Grid>
         </Grid>
@@ -185,16 +194,24 @@ export default function Home({ featured = [], stats = {} as any, communities = [
           }
         />
         <Grid container spacing={{ xs: 2, md: 3 }}>
-          {featured.slice(0, 8).map((m, i) => (
-            <Grid key={m.movieId} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-              <MovieCard 
-                movie={m} 
-                rank={i + 1} 
-                isAuth={!!auth?.user} 
-                initialRating={getInitialRating(m.movieId)} 
-              />
-            </Grid>
-          ))}
+          {featured.length === 0 ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <Grid key={i} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+                <MovieCardSkeleton />
+              </Grid>
+            ))
+          ) : (
+            featured.slice(0, 8).map((m, i) => (
+              <Grid key={m.movieId} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+                <MovieCard 
+                  movie={m} 
+                  rank={i + 1} 
+                  isAuth={!!auth?.user} 
+                  initialRating={getInitialRating(m.movieId)} 
+                />
+              </Grid>
+            ))
+          )}
         </Grid>
       </Box>
 

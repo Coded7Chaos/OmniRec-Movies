@@ -20,6 +20,7 @@ import { usePage } from '@inertiajs/react';
 
 import PageHeader from '../components/PageHeader';
 import MovieCard from '../components/MovieCard';
+import { MovieCardSkeleton } from '../components/Skeletons';
 import { getJson } from '../api';
 
 const SORT_OPTIONS = [
@@ -168,14 +169,13 @@ export default function Catalog({ genres = [], featured = [], userRatings = [] }
         </Box>
       </Paper>
 
-      {loading && <LinearProgress sx={{ mb: 2 }} />}
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
       <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: 2.5 }}>
         <Typography variant="h6">
-          {hasFilters ? `${results.length} resultados` : 'Películas destacadas'}
+          {loading ? 'Buscando...' : (hasFilters ? `${results.length} resultados` : 'Películas destacadas')}
         </Typography>
-        {selectedGenreRaw && (
+        {selectedGenreRaw && !loading && (
           <Chip 
             label={`Filtrando: ${genres.find(g => g.raw === selectedGenreRaw)?.label}`} 
             onDelete={() => setSelectedGenreRaw(null)} 
@@ -184,7 +184,15 @@ export default function Catalog({ genres = [], featured = [], userRatings = [] }
         )}
       </Stack>
 
-      {results.length === 0 && !loading ? (
+      {loading ? (
+        <Grid container spacing={{ xs: 2, md: 3 }}>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Grid key={i} size={{ xs: 6, sm: 4, md: 3 }}>
+              <MovieCardSkeleton />
+            </Grid>
+          ))}
+        </Grid>
+      ) : results.length === 0 ? (
         <Alert severity="info">
           Sin resultados con los filtros actuales. Prueba otro género o limpia la búsqueda.
         </Alert>

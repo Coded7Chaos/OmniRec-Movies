@@ -23,40 +23,40 @@ from .models import Movie, MovieRating
 
 COMMUNITY_PROFILES = {
     0: {
-        'name': 'Críticos Exigentes',
-        'tagline': 'Dramas profundos y cine de autor.',
-        'description': 'Valoras guiones complejos y propuestas cinematográficas arriesgadas. No te impresionas fácilmente con los efectos especiales.',
-        'icon': 'Clapperboard'
-    },
-    1: {
-        'name': 'Fans del Mainstream',
-        'tagline': 'Grandes éxitos y entretenimiento.',
-        'description': 'Disfrutas de las películas que marcan tendencia. Te gusta estar al día con lo que todos están viendo.',
-        'icon': 'Film'
-    },
-    2: {
-        'name': 'Buscadores de Adrenalina',
-        'tagline': 'Acción, aventura y mundos fantásticos.',
-        'description': 'Buscas escapar de la realidad con emociones fuertes, mucha acción y ciencia ficción visualmente impactante.',
-        'icon': 'Zap'
-    },
-    3: {
-        'name': 'Cinéfilos Románticos',
-        'tagline': 'Historias humanas y clásicos.',
-        'description': 'Te conmueven las historias bien contadas sobre relaciones humanas, romance y los grandes clásicos del cine.',
-        'icon': 'Heart'
-    },
-    4: {
-        'name': 'Audiencia Familiar',
-        'tagline': 'Animación y aventuras para todos.',
-        'description': 'Prefieres el cine que puede disfrutar toda la familia: mucha animación, fantasía y humor ligero.',
-        'icon': 'Smile'
-    },
-    5: {
         'name': 'Exploradores de Nicho',
         'tagline': 'Documentales y cine independiente.',
-        'description': 'Tienes gustos muy específicos. Te interesan los temas reales y las visiones únicas de directores independientes.',
+        'description': 'Tienes gustos muy específicos. Te interesan los temas reales, visiones únicas y cine de misterio o terror.',
         'icon': 'Search'
+    },
+    1: {
+        'name': 'Cinéfilos Románticos',
+        'tagline': 'Historias humanas y clásicos.',
+        'description': 'Te conmueven las historias bien contadas sobre relaciones humanas, romance y musicales clásicos.',
+        'icon': 'Heart'
+    },
+    2: {
+        'name': 'Críticos Exigentes',
+        'tagline': 'Dramas profundos y cine de autor.',
+        'description': 'Valoras guiones complejos, dramas intensos y propuestas cinematográficas arriesgadas o clásicos del cine negro.',
+        'icon': 'Clapperboard'
+    },
+    3: {
+        'name': 'Audiencia Familiar',
+        'tagline': 'Animación y aventuras para todos.',
+        'description': 'Prefieres el cine que puede disfrutar toda la familia: mucha animación, fantasía y aventuras épicas.',
+        'icon': 'Smile'
+    },
+    4: {
+        'name': 'Buscadores de Adrenalina',
+        'tagline': 'Acción, aventura y mundos fantásticos.',
+        'description': 'Buscas escapar de la realidad con emociones fuertes, mucha acción, suspenso y ciencia ficción impactante.',
+        'icon': 'Zap'
+    },
+    5: {
+        'name': 'Fans del Mainstream',
+        'tagline': 'Grandes éxitos y entretenimiento.',
+        'description': 'Disfrutas de las películas que marcan tendencia, grandes producciones IMAX y éxitos de taquilla actuales.',
+        'icon': 'Film'
     }
 }
 
