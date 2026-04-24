@@ -26,37 +26,37 @@ COMMUNITY_PROFILES = {
         'name': 'Críticos Exigentes',
         'tagline': 'Dramas profundos y cine de autor.',
         'description': 'Valoras guiones complejos y propuestas cinematográficas arriesgadas. No te impresionas fácilmente con los efectos especiales.',
-        'emoji': '🎭'
+        'icon': 'Clapperboard'
     },
     1: {
         'name': 'Fans del Mainstream',
         'tagline': 'Grandes éxitos y entretenimiento.',
         'description': 'Disfrutas de las películas que marcan tendencia. Te gusta estar al día con lo que todos están viendo.',
-        'emoji': '🍿'
+        'icon': 'Film'
     },
     2: {
         'name': 'Buscadores de Adrenalina',
         'tagline': 'Acción, aventura y mundos fantásticos.',
         'description': 'Buscas escapar de la realidad con emociones fuertes, mucha acción y ciencia ficción visualmente impactante.',
-        'emoji': '🚀'
+        'icon': 'Zap'
     },
     3: {
         'name': 'Cinéfilos Románticos',
         'tagline': 'Historias humanas y clásicos.',
         'description': 'Te conmueven las historias bien contadas sobre relaciones humanas, romance y los grandes clásicos del cine.',
-        'emoji': '❤️'
+        'icon': 'Heart'
     },
     4: {
         'name': 'Audiencia Familiar',
         'tagline': 'Animación y aventuras para todos.',
         'description': 'Prefieres el cine que puede disfrutar toda la familia: mucha animación, fantasía y humor ligero.',
-        'emoji': '🦄'
+        'icon': 'Smile'
     },
     5: {
         'name': 'Exploradores de Nicho',
         'tagline': 'Documentales y cine independiente.',
         'description': 'Tienes gustos muy específicos. Te interesan los temas reales y las visiones únicas de directores independientes.',
-        'emoji': '🕵️'
+        'icon': 'Search'
     }
 }
 
@@ -131,7 +131,8 @@ class Registry:
 
     def movies_df(self) -> pd.DataFrame:
         if self._movies_df is None:
-            self._movies_df = pd.read_parquet(self.data_dir / 'movies_sample.parquet').set_index('movieId', drop=False)
+            # Usamos el dataset preparado al 60% (55k películas) para coincidir con los notebooks
+            self._movies_df = pd.read_parquet(self.data_dir / 'movies_prepared_60pct.parquet').set_index('movieId', drop=False)
         return self._movies_df
 
     def user_clusters(self) -> pd.DataFrame:
@@ -206,7 +207,7 @@ class Registry:
             'name': profile_info['name'],
             'tagline': profile_info['tagline'],
             'description': profile_info['description'],
-            'emoji': profile_info['emoji'],
+            'icon': profile_info['icon'],
             'color': CLUSTER_COLORS[closest_cluster % len(CLUSTER_COLORS)],
             'n_ratings': n_ratings,
             'stats': {'avg_rating': round(float(stats['avg']), 2) if stats['avg'] else 0}

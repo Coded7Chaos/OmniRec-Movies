@@ -38,8 +38,8 @@ def home(request):
         'featured': featured,
         'userRatings': user_ratings, # <--- Enviamos los ratings a Inicio
         'stats': {
-            'movies': 5915,
-            'ratings': 1150000,
+            'movies': 55113,
+            'ratings': 15002636,
             'communities': 6
         }
     })

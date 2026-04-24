@@ -102,8 +102,8 @@ export default function Home({ featured = [], stats = {} as any, communities = [
                 color: 'text.secondary'
               }}
             >
-              OmniRec combina cinco modelos de recomendación entrenados sobre 25 millones de
-              reseñas reales. Regístrate para puntuar películas y obtener recomendaciones curadas para ti,
+              OmniRec combina cinco modelos de recomendación entrenados sobre 15 millones de
+              reseñas reales (muestra del 60% de MovieLens 25M). Regístrate para puntuar películas y obtener recomendaciones curadas para ti,
               o explora el catálogo y los algoritmos en nuestro laboratorio.
             </Typography>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>

@@ -23,10 +23,34 @@ import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
 import HelpOutlineRoundedIcon from '@mui/icons-material/HelpOutlineRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import { 
+  Clapperboard, 
+  Film, 
+  Zap, 
+  Heart, 
+  Smile, 
+  Search,
+  LucideProps
+} from 'lucide-react';
 import PageHeader from '../components/PageHeader';
+
+const IconMap: Record<string, React.ComponentType<LucideProps>> = {
+  Clapperboard,
+  Film,
+  Zap,
+  Heart,
+  Smile,
+  Search
+};
 
 export default function Profile({ profile, recentRatings = [], allCommunities = [] }) {
   const [open, setOpen] = React.useState(false);
+
+  const LucideIcon = ({ name, color, size = 64 }: { name: string, color?: string, size?: number }) => {
+    const Icon = IconMap[name];
+    if (!Icon) return null;
+    return <Icon size={size} color={color} strokeWidth={1.5} />;
+  };
 
   return (
     <>
@@ -50,9 +74,9 @@ export default function Profile({ profile, recentRatings = [], allCommunities = 
           >
             {profile.has_profile ? (
               <Stack spacing={3} alignItems="center">
-                <Typography variant="h1" sx={{ fontSize: '4rem' }}>
-                  {profile.emoji}
-                </Typography>
+                <Box sx={{ py: 2 }}>
+                  <LucideIcon name={profile.icon} color={profile.color} size={80} />
+                </Box>
                 <Box>
                   <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 800 }}>
                     Tu Comunidad es:
@@ -144,7 +168,7 @@ export default function Profile({ profile, recentRatings = [], allCommunities = 
             {allCommunities.map((c) => (
               <Box key={c.id} sx={{ p: 2, borderRadius: 2, bgcolor: 'background.default', borderLeft: '4px solid', borderColor: c.color }}>
                 <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 1 }}>
-                  <Typography variant="h5">{c.emoji}</Typography>
+                  <LucideIcon name={c.icon} color={c.color} size={32} />
                   <Box>
                     <Typography variant="subtitle1" sx={{ fontWeight: 800, color: c.color }}>
                       {c.name}
