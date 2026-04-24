@@ -6,13 +6,12 @@ app_name = 'recommender'
 
 urlpatterns = [
     path('', views.home, name='home'),
-    path('recommend/', views.recommend, name='recommend'),
-    path('recommend/run/', views.recommend_run, name='recommend_run'),
-    path('predict/', views.predict, name='predict'),
-    path('predict/run/', views.predict_run, name='predict_run'),
-    path('catalog/', views.search, name='search'),
-    path('catalog/results/', views.search_results, name='search_results'),
-    path('movies/autocomplete/', views.movie_autocomplete, name='movie_autocomplete'),
-    path('clusters/', views.clusters, name='clusters'),
+    path('discover/', views.discover, name='discover'),
+    path('catalog/', views.catalog, name='catalog'),
+    path('lab/', views.lab, name='lab'),
+    path('insights/', views.insights, name='insights'),
+    path('api/recommend/', views.api_recommend, name='api_recommend'),
+    path('api/predict/', views.api_predict, name='api_predict'),
+    path('api/movies/', views.api_movies, name='api_movies'),
     path('health/', views.health, name='health'),
 ]

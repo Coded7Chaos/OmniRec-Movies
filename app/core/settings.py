@@ -1,8 +1,8 @@
 """
 Django settings for the OmniRec-Movies testbench.
 
-Reads configuration from environment variables via django-environ so the
-same codebase can run in dev (SQLite, DEBUG=True) and prod-like modes.
+SPA arquitectura: Django + Inertia.js + React + MUI.
+El frontend vive en `app/frontend/` y se sirve con django-vite.
 """
 
 from pathlib import Path
@@ -19,6 +19,7 @@ env = environ.Env(
     OMNIREC_MODELS_DIR=(str, str(PROJECT_ROOT / 'models')),
     OMNIREC_DATA_DIR=(str, str(PROJECT_ROOT / 'data' / 'intermediate')),
     OMNIREC_EAGER_LOAD=(bool, False),
+    DJANGO_VITE_DEV_MODE=(bool, False),
 )
 
 env_file = BASE_DIR / '.env'
@@ -40,8 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_htmx',
-    'django_browser_reload',
+    'inertia',
+    'django_vite',
     'apps.recommender',
 ]
 
@@ -53,8 +54,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django_htmx.middleware.HtmxMiddleware',
-    'django_browser_reload.middleware.BrowserReloadMiddleware',
+    'inertia.middleware.InertiaMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -96,7 +96,24 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+    BASE_DIR / 'frontend' / 'dist',
+]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ----- Inertia.js -----
+INERTIA_LAYOUT = 'layout.html'
+INERTIA_VERSION = '1.0'
+
+# ----- django-vite -----
+DJANGO_VITE = {
+    'default': {
+        'dev_mode': env('DJANGO_VITE_DEV_MODE'),
+        'dev_server_port': 5173,
+        'manifest_path': BASE_DIR / 'frontend' / 'dist' / '.vite' / 'manifest.json',
+        'static_url_prefix': '',
+    }
+}
