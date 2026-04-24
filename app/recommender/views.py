@@ -15,7 +15,6 @@ def _shell(request, active: str):
             {'href': '/', 'label': 'Inicio', 'key': 'home'},
             {'href': '/discover/', 'label': 'Descubrir', 'key': 'discover'},
             {'href': '/catalog/', 'label': 'Catálogo', 'key': 'catalog'},
-            {'href': '/lab/', 'label': 'Laboratorio', 'key': 'lab'},
             {'href': '/profile/', 'label': 'Mi Perfil', 'key': 'profile'},
         ],
         'active': active,

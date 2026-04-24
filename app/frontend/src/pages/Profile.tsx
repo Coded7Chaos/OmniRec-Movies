@@ -36,14 +36,13 @@ export default function Profile({ profile, recentRatings = [], allCommunities = 
         description="Analizamos tus gustos para encontrarte una comunidad de personas con preferencias similares."
       />
 
-      <Grid container spacing={4}>
+      <Grid container spacing={4} alignItems="flex-start">
         {/* Columna Izquierda: Identidad */}
         <Grid size={{ xs: 12, md: 5 }}>
           <Paper
             variant="outlined"
             sx={{
               p: 4,
-              height: '100%',
               textAlign: 'center',
               borderTop: '6px solid',
               borderColor: profile.has_profile ? profile.color : 'divider',
