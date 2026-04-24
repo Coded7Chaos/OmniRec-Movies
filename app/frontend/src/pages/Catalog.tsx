@@ -16,6 +16,7 @@ import Grid from '@mui/material/Grid2';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import ClearRoundedIcon from '@mui/icons-material/ClearRounded';
+import { usePage } from '@inertiajs/react';
 
 import PageHeader from '../components/PageHeader';
 import MovieCard from '../components/MovieCard';
@@ -26,19 +27,24 @@ const SORT_OPTIONS = [
   { value: 'alpha', label: 'Alfabético (A – Z)' },
 ];
 
-export default function Catalog({ genres = [], featured = [] }) {
+export default function Catalog({ genres = [], featured = [], userRatings = [] }) {
+  const { auth }: any = usePage().props;
   const [query, setQuery] = React.useState('');
-  const [genre, setGenre] = React.useState(null);
+  const [selectedGenreRaw, setSelectedGenreRaw] = React.useState(null);
   const [sort, setSort] = React.useState('score');
   const [results, setResults] = React.useState(featured);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
 
-  const hasFilters = query.trim().length >= 2 || genre || sort !== 'score';
+  const hasFilters = query.trim().length >= 2 || selectedGenreRaw || sort !== 'score';
+
+  const getInitialRating = (movieId) => {
+    const r = userRatings.find(r => r.movie_id === movieId);
+    return r ? r.rating : 0;
+  };
 
   React.useEffect(() => {
     let cancelled = false;
-    // Si no hay filtros activos, mostramos las destacadas iniciales
     if (!hasFilters) {
       setResults(featured);
       setError(null);
@@ -48,7 +54,7 @@ export default function Catalog({ genres = [], featured = [] }) {
     const handle = setTimeout(() => {
       const params = new URLSearchParams();
       if (query.trim().length >= 2) params.set('q', query);
-      if (genre) params.set('genre', genre);
+      if (selectedGenreRaw) params.set('genre', selectedGenreRaw);
       params.set('sort', sort);
       params.set('limit', '24');
       getJson(`/api/movies/?${params.toString()}`)
@@ -68,11 +74,11 @@ export default function Catalog({ genres = [], featured = [] }) {
       cancelled = true;
       clearTimeout(handle);
     };
-  }, [query, genre, sort, featured, hasFilters]);
+  }, [query, selectedGenreRaw, sort, featured, hasFilters]);
 
   const clearAll = () => {
     setQuery('');
-    setGenre(null);
+    setSelectedGenreRaw(null);
     setSort('score');
   };
 
@@ -80,8 +86,8 @@ export default function Catalog({ genres = [], featured = [] }) {
     <>
       <PageHeader
         eyebrow="Catálogo"
-        title="Explorá todas las películas"
-        description="Filtrá por género, ordená por puntaje o buscá por título. El score bayesiano ajusta la popularidad por cantidad de reseñas."
+        title="Explora todas las películas"
+        description="Filtra por género, ordena por puntaje o busca por título. El score bayesiano ajusta la popularidad por cantidad de reseñas."
       />
 
       <Paper variant="outlined" sx={{ p: { xs: 3, md: 3.5 }, mb: 4 }}>
@@ -105,7 +111,7 @@ export default function Catalog({ genres = [], featured = [] }) {
           <Grid size={{ xs: 12, md: 7 }}>
             <TextField
               fullWidth
-              placeholder="Buscar por título (ej. Matrix, Lord of the Rings)"
+              placeholder="Buscar por título (ej. Matrix, El Señor de los Anillos)"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               InputProps={{
@@ -145,17 +151,17 @@ export default function Catalog({ genres = [], featured = [] }) {
           <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
             <Chip
               label="Todos"
-              onClick={() => setGenre(null)}
-              color={!genre ? 'primary' : 'default'}
-              variant={!genre ? 'filled' : 'outlined'}
+              onClick={() => setSelectedGenreRaw(null)}
+              color={!selectedGenreRaw ? 'primary' : 'default'}
+              variant={!selectedGenreRaw ? 'filled' : 'outlined'}
             />
             {genres.slice(0, 18).map((g) => (
               <Chip
-                key={g.label}
+                key={g.raw}
                 label={`${g.label} · ${g.count}`}
-                onClick={() => setGenre(g.label === genre ? null : g.label)}
-                color={genre === g.label ? 'primary' : 'default'}
-                variant={genre === g.label ? 'filled' : 'outlined'}
+                onClick={() => setSelectedGenreRaw(g.raw === selectedGenreRaw ? null : g.raw)}
+                color={selectedGenreRaw === g.raw ? 'primary' : 'default'}
+                variant={selectedGenreRaw === g.raw ? 'filled' : 'outlined'}
               />
             ))}
           </Stack>
@@ -169,20 +175,29 @@ export default function Catalog({ genres = [], featured = [] }) {
         <Typography variant="h6">
           {hasFilters ? `${results.length} resultados` : 'Películas destacadas'}
         </Typography>
-        {genre && (
-          <Chip label={`Filtrando: ${genre}`} onDelete={() => setGenre(null)} color="primary" />
+        {selectedGenreRaw && (
+          <Chip 
+            label={`Filtrando: ${genres.find(g => g.raw === selectedGenreRaw)?.label}`} 
+            onDelete={() => setSelectedGenreRaw(null)} 
+            color="primary" 
+          />
         )}
       </Stack>
 
       {results.length === 0 && !loading ? (
         <Alert severity="info">
-          Sin resultados con los filtros actuales. Probá otro género o limpiá la búsqueda.
+          Sin resultados con los filtros actuales. Prueba otro género o limpia la búsqueda.
         </Alert>
       ) : (
         <Grid container spacing={{ xs: 2, md: 3 }}>
           {results.map((movie, i) => (
             <Grid key={movie.movieId} size={{ xs: 6, sm: 4, md: 3 }}>
-              <MovieCard movie={movie} rank={!hasFilters && i < 8 ? i + 1 : undefined} />
+              <MovieCard 
+                movie={movie} 
+                rank={!hasFilters && i < 8 ? i + 1 : undefined} 
+                isAuth={!!auth?.user}
+                initialRating={getInitialRating(movie.movieId)}
+              />
             </Grid>
           ))}
         </Grid>

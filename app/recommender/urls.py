@@ -1,5 +1,4 @@
 from django.urls import path
-
 from . import views
 
 app_name = 'recommender'
@@ -9,9 +8,12 @@ urlpatterns = [
     path('discover/', views.discover, name='discover'),
     path('catalog/', views.catalog, name='catalog'),
     path('lab/', views.lab, name='lab'),
-    path('insights/', views.insights, name='insights'),
-    path('api/recommend/', views.api_recommend, name='api_recommend'),
-    path('api/predict/', views.api_predict, name='api_predict'),
+    path('profile/', views.profile, name='profile'),
+    
+    path('login/', views.login_view, name='login'),
+    path('register/', views.register_view, name='register'),
+    path('logout/', views.logout_view, name='logout'),
+    
+    path('api/rate/', views.rate_movie, name='rate_movie'),
     path('api/movies/', views.api_movies, name='api_movies'),
-    path('health/', views.health, name='health'),
 ]

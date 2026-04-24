@@ -105,6 +105,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 INERTIA_LAYOUT = 'layout.html'
 INERTIA_VERSION = '1.0'
 
+# ----- CSRF for SPA -----
+# Axios busca automáticamente 'XSRF-TOKEN' y lo envía como 'X-XSRF-TOKEN'
+CSRF_COOKIE_NAME = "XSRF-TOKEN"
+CSRF_HEADER_NAME = "HTTP_X_XSRF_TOKEN"
+
 # ----- django-vite -----
 DJANGO_VITE = {
     'default': {

@@ -16,11 +16,14 @@ import {
   ListItemButton,
   ListItemText,
   Divider,
+  Avatar,
 } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { useTheme } from '@mui/material/styles';
 import MovieFilterRoundedIcon from '@mui/icons-material/MovieFilterRounded';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
+import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import LoginRoundedIcon from '@mui/icons-material/LoginRounded';
 
 function Brand({ dense = false }) {
   return (
@@ -35,13 +38,13 @@ function Brand({ dense = false }) {
       <Box
         sx={{
           width: dense ? 38 : 44,
-          height: dense ? 38 : 44,
           borderRadius: 1,
           bgcolor: 'primary.main',
           color: 'primary.contrastText',
           display: 'grid',
           placeItems: 'center',
           boxShadow: 'none',
+          aspectRatio: '1/1',
         }}
       >
         <MovieFilterRoundedIcon fontSize={dense ? 'small' : 'medium'} />
@@ -62,15 +65,16 @@ function Brand({ dense = false }) {
 }
 
 export default function Layout({ children }) {
-  const { props } = usePage();
+  const { props }: any = usePage();
   const navigation = (props.navigation as any[]) || [];
   const active = props.active;
+  const auth = props.auth;
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = React.useState(false);
 
   const navButtons = (
-    <Stack direction="row" spacing={0.5}>
+    <Stack direction="row" spacing={0.5} alignItems="center">
       {navigation.map((item) => {
         const isActive = active === item.key;
         return (
@@ -89,6 +93,33 @@ export default function Layout({ children }) {
           </Button>
         );
       })}
+      
+      <Divider orientation="vertical" flexItem sx={{ mx: 1, my: 1 }} />
+
+      {auth?.user ? (
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ ml: 1 }}>
+          <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.8rem' }}>
+            {auth.user.username[0].toUpperCase()}
+          </Avatar>
+          <Typography variant="body2" sx={{ fontWeight: 700, mr: 1 }}>
+            {auth.user.username}
+          </Typography>
+          <IconButton component={Link} href="/logout/" size="small" title="Cerrar sesión">
+             <LogoutRoundedIcon fontSize="small" />
+          </IconButton>
+        </Stack>
+      ) : (
+        <Button
+          component={Link}
+          href="/login/"
+          variant="outlined"
+          size="small"
+          startIcon={<LoginRoundedIcon />}
+          sx={{ ml: 1, borderRadius: 2 }}
+        >
+          Entrar
+        </Button>
+      )}
     </Stack>
   );
 
@@ -119,6 +150,30 @@ export default function Layout({ children }) {
           </ListItem>
         ))}
       </List>
+      <Divider />
+      <Box sx={{ p: 2 }}>
+        {auth?.user ? (
+          <Button
+            component={Link}
+            href="/logout/"
+            fullWidth
+            variant="outlined"
+            startIcon={<LogoutRoundedIcon />}
+          >
+            Cerrar sesión ({auth.user.username})
+          </Button>
+        ) : (
+          <Button
+            component={Link}
+            href="/login/"
+            fullWidth
+            variant="contained"
+            startIcon={<LoginRoundedIcon />}
+          >
+            Iniciar sesión
+          </Button>
+        )}
+      </Box>
     </Box>
   );
 
