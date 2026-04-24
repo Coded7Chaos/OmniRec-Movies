@@ -1,250 +1,137 @@
-"""
-Vistas Inertia + endpoints JSON del sitio.
-
-Estructura del sitio:
-- `/`          → Home (landing con películas destacadas)
-- `/discover/` → Recomendaciones personalizadas (el usuario elige un perfil)
-- `/catalog/`  → Explorador con filtros por género y ordenamiento
-- `/lab/`      → Laboratorio de modelos (testbench pulido con tabs)
-- `/insights/` → Comunidades de gustos (clusters renombrados)
-- `/health/`   → JSON para probes
-
-Acciones dinámicas (Top-N, predicción, búsqueda): endpoints JSON
-`/api/*` consumidos desde React con fetch.
-"""
-
-from __future__ import annotations
-
-import json
-import time
-
-from django.http import HttpResponseBadRequest, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET, require_POST
+from django.shortcuts import redirect
+from django.contrib.auth import login as auth_login, logout as auth_logout, authenticate
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.http import JsonResponse
 from inertia import render as inertia_render
+from .services import registry, MODEL_LABELS, MODEL_HINTS, COMMUNITY_PROFILES, CLUSTER_COLORS
+from .models import Movie, MovieRating
+import json
 
-from .services import MODEL_HINTS, MODEL_LABELS, registry
-
-
-# ---------- helpers ----------
-
-NAV_ITEMS = [
-    {'href': '/', 'label': 'Inicio', 'key': 'home'},
-    {'href': '/discover/', 'label': 'Descubrir', 'key': 'discover'},
-    {'href': '/catalog/', 'label': 'Catálogo', 'key': 'catalog'},
-    {'href': '/lab/', 'label': 'Laboratorio', 'key': 'lab'},
-    {'href': '/insights/', 'label': 'Comunidades', 'key': 'insights'},
-]
-
-
-def _model_options() -> list[dict]:
-    return [
-        {'key': key, 'label': MODEL_LABELS[key], 'hint': MODEL_HINTS.get(key, '')}
-        for key in MODEL_LABELS
-    ]
-
-
-def _shell(active: str) -> dict:
-    return {'navigation': NAV_ITEMS, 'active': active}
-
-
-def _parse_body(request):
-    if request.content_type and 'application/json' in request.content_type:
-        try:
-            return json.loads(request.body or b'{}')
-        except json.JSONDecodeError:
-            return None
-    return request.POST.dict()
-
-
-# ---------- páginas ----------
-
-@require_GET
-def home(request):
-    metrics = registry.metrics()
-    best_by_rmse = min(metrics, key=lambda r: r['RMSE']) if metrics else None
-    best_by_ndcg = max(metrics, key=lambda r: r['NDCG@10']) if metrics else None
-
-    communities = registry.communities()
-    featured = registry.top_movies(limit=12)
-
-    stats = {
-        'movies': int(len(registry.movies())),
-        'ratings': int(len(registry.ratings())),
-        'personas': len(registry.personas()),
-        'communities': len(communities),
+def _shell(request, active: str):
+    return {
+        'navigation': [
+            {'href': '/', 'label': 'Inicio', 'key': 'home'},
+            {'href': '/discover/', 'label': 'Descubrir', 'key': 'discover'},
+            {'href': '/catalog/', 'label': 'Catálogo', 'key': 'catalog'},
+            {'href': '/lab/', 'label': 'Laboratorio', 'key': 'lab'},
+            {'href': '/profile/', 'label': 'Mi Perfil', 'key': 'profile'},
+        ],
+        'active': active,
+        'auth': {
+            'user': {
+                'id': request.user.id,
+                'username': request.user.username,
+            } if request.user.is_authenticated else None
+        }
     }
 
+@ensure_csrf_cookie
+def home(request):
+    featured = registry.get_top_popular(n=12)
+    user_ratings = []
+    if request.user.is_authenticated:
+        user_ratings = list(MovieRating.objects.filter(user=request.user).values('movie_id', 'rating'))
+
     return inertia_render(request, 'Home', props={
-        **_shell('home'),
+        **_shell(request, 'home'),
         'featured': featured,
-        'stats': stats,
-        'communities': communities[:3],
-        'bestByRmse': best_by_rmse,
-        'bestByNdcg': best_by_ndcg,
+        'userRatings': user_ratings, # <--- Enviamos los ratings a Inicio
+        'stats': {
+            'movies': 5915,
+            'ratings': 1150000,
+            'communities': 6
+        }
     })
 
+@login_required
+def profile(request):
+    user_profile = registry.get_user_profile(request.user)
+    user_ratings = list(MovieRating.objects.filter(user=request.user)
+                       .select_related('movie')
+                       .order_by('-created_at')[:10]
+                       .values('movie__title', 'rating', 'created_at'))
+    
+    # Preparamos la lista de todas las comunidades para el modal
+    all_communities = [
+        {**info, 'id': cid, 'color': CLUSTER_COLORS[cid % len(CLUSTER_COLORS)]} 
+        for cid, info in COMMUNITY_PROFILES.items()
+    ]
+    
+    return inertia_render(request, 'Profile', props={
+        **_shell(request, 'profile'),
+        'profile': user_profile,
+        'recentRatings': user_ratings,
+        'allCommunities': all_communities, # <--- Enviamos todas las comunidades
+    })
 
-@require_GET
+@login_required
 def discover(request):
+    model_key = request.GET.get('model', 'svd')
+    recommendations = registry.get_recommendations(request.user, model_key=model_key)
+    user_ratings = list(MovieRating.objects.filter(user=request.user).values('movie_id', 'rating'))
+    
     return inertia_render(request, 'Discover', props={
-        **_shell('discover'),
-        'personas': registry.personas(),
-        'models': _model_options(),
-        'communities': registry.communities(),
-        'genres': registry.available_genres(),
+        **_shell(request, 'discover'),
+        'recommendations': recommendations,
+        'userRatings': user_ratings,
+        'models': [{'key': k, 'label': v, 'hint': MODEL_HINTS.get(k, '')} for k, v in MODEL_LABELS.items()],
+        'currentModel': model_key
     })
 
-
-@require_GET
 def catalog(request):
+    movies = registry.get_top_popular(n=24)
+    user_ratings = []
+    if request.user.is_authenticated:
+        user_ratings = list(MovieRating.objects.filter(user=request.user).values('movie_id', 'rating'))
+
     return inertia_render(request, 'Catalog', props={
-        **_shell('catalog'),
-        'genres': registry.available_genres(),
-        'featured': registry.top_movies(limit=24),
+        **_shell(request, 'catalog'),
+        'featured': movies,
+        'userRatings': user_ratings,
     })
 
+@ensure_csrf_cookie
+def login_view(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        user = authenticate(username=data.get('username'), password=data.get('password'))
+        if user:
+            auth_login(request, user)
+            return redirect('/')
+        return JsonResponse({'error': 'Credenciales inválidas'}, status=400)
+    if request.user.is_authenticated: return redirect('/')
+    return inertia_render(request, 'Login', props=_shell(request, 'login'))
 
-@require_GET
-def lab(request):
-    return inertia_render(request, 'Lab', props={
-        **_shell('lab'),
-        'personas': registry.personas(),
-        'models': _model_options(),
-        'communities': registry.communities(),
-        'genres': registry.available_genres(),
-        'metrics': registry.metrics(),
-    })
+@ensure_csrf_cookie
+def register_view(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username, password = data.get('username'), data.get('password')
+        if not username or not password: return JsonResponse({'error': 'Datos incompletos'}, status=400)
+        if User.objects.filter(username=username).exists(): return JsonResponse({'error': 'El usuario ya existe'}, status=400)
+        user = User.objects.create_user(username=username, password=password)
+        auth_login(request, user)
+        registry.sync_catalog()
+        return redirect('/')
+    if request.user.is_authenticated: return redirect('/')
+    return inertia_render(request, 'Register', props=_shell(request, 'register'))
 
+def logout_view(request):
+    auth_logout(request)
+    return redirect('/')
 
-@require_GET
-def insights(request):
-    return inertia_render(request, 'Insights', props={
-        **_shell('insights'),
-        'communities': registry.communities(),
-        'metrics': registry.metrics(),
-    })
-
-
-# ---------- endpoints JSON ----------
-
-@csrf_exempt
-@require_POST
-def api_recommend(request):
-    payload = _parse_body(request)
-    if payload is None:
-        return HttpResponseBadRequest('Invalid JSON')
-
-    try:
-        user_id = int(payload.get('user_id'))
-        model_key = str(payload.get('model_key') or 'svd')
-        n = int(payload.get('n', 10))
-    except (TypeError, ValueError):
-        return JsonResponse({'error': 'Parámetros inválidos.'}, status=400)
-
-    if model_key not in MODEL_LABELS:
-        return JsonResponse({'error': 'Modelo desconocido.'}, status=400)
-
-    persona = registry.persona(user_id)
-    if persona is None:
-        return JsonResponse({'error': 'El perfil seleccionado ya no está disponible.'}, status=404)
-
-    n = max(1, min(n, 30))
-    started = time.perf_counter()
-    try:
-        recs = registry.top_n_for_user(user_id, model_key, n=n)
-    except FileNotFoundError as exc:
-        return JsonResponse({'error': f'Artefacto ausente: {exc.filename}'}, status=503)
-    except Exception as exc:
-        return JsonResponse({'error': f'{type(exc).__name__}: {exc}'}, status=500)
-    elapsed_ms = (time.perf_counter() - started) * 1000
-
-    return JsonResponse({
-        'recs': recs,
-        'persona': persona,
-        'model_key': model_key,
-        'model_label': MODEL_LABELS.get(model_key, model_key),
-        'elapsed_ms': round(elapsed_ms, 1),
-        'n': n,
-    })
-
-
-@csrf_exempt
-@require_POST
-def api_predict(request):
-    payload = _parse_body(request)
-    if payload is None:
-        return HttpResponseBadRequest('Invalid JSON')
-
-    try:
-        user_id = int(payload.get('user_id'))
-        movie_id = int(payload.get('movie_id'))
-    except (TypeError, ValueError):
-        return JsonResponse({'error': 'Parámetros inválidos.'}, status=400)
-
-    persona = registry.persona(user_id)
-    if persona is None:
-        return JsonResponse({'error': 'Perfil no disponible.'}, status=404)
-
-    movie = registry.movie_by_id(movie_id)
-    if movie is None:
-        return JsonResponse({'error': 'La película no está en el catálogo (necesita ≥ 20 votos).'}, status=404)
-
-    rows = []
-    for key, label in MODEL_LABELS.items():
-        started = time.perf_counter()
+@login_required
+def rate_movie(request):
+    if request.method == 'POST':
         try:
-            score = registry.predict_rating(key, user_id, movie_id)
-            error = None
-        except FileNotFoundError as exc:
-            score, error = None, f'Artefacto ausente: {exc.filename}'
-        except Exception as exc:
-            score, error = None, f'{type(exc).__name__}: {exc}'
-        rows.append({
-            'key': key,
-            'label': label,
-            'hint': MODEL_HINTS.get(key, ''),
-            'score': round(score, 3) if score is not None else None,
-            'elapsed_ms': round((time.perf_counter() - started) * 1000, 1),
-            'error': error,
-        })
+            data = json.loads(request.body)
+            movie = Movie.objects.get(movie_id=data.get('movie_id'))
+            MovieRating.objects.update_or_create(user=request.user, movie=movie, defaults={'rating': float(data.get('rating'))})
+            return JsonResponse({'status': 'ok'})
+        except Exception as e: return JsonResponse({'error': str(e)}, status=400)
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
 
-    scored = [r for r in rows if r['score'] is not None]
-    best_key = max(scored, key=lambda r: r['score'])['key'] if scored else None
-
-    return JsonResponse({
-        'persona': persona,
-        'movie': movie,
-        'rows': rows,
-        'best_key': best_key,
-    })
-
-
-@require_GET
-def api_movies(request):
-    query = request.GET.get('q', '')
-    genre = request.GET.get('genre') or None
-    sort = request.GET.get('sort', 'score')
-    try:
-        limit = min(int(request.GET.get('limit', 18) or 18), 60)
-    except ValueError:
-        limit = 18
-    hits = registry.movie_lookup(query, limit=limit, genre_es=genre, sort=sort)
-    return JsonResponse({'query': query, 'hits': hits})
-
-
-@require_GET
-def health(request):
-    try:
-        return JsonResponse({
-            'status': 'ok',
-            'models_loaded': len(registry._models),
-            'movies': int(len(registry.movies())),
-            'personas': len(registry.personas()),
-            'communities': len(registry.communities()),
-        })
-    except Exception as exc:
-        return JsonResponse(
-            {'status': 'error', 'detail': f'{type(exc).__name__}: {exc}'},
-            status=500,
-        )
+def lab(request):
+    return inertia_render(request, 'Lab', props={**_shell(request, 'lab'), 'metrics': registry.metrics()})

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
   Box,
   Paper,
@@ -29,21 +29,28 @@ const FEATURES = [
   {
     icon: <AutoAwesomeRoundedIcon />,
     title: 'Recomendaciones personalizadas',
-    body: 'Elegí un perfil parecido al tuyo y te devolvemos películas que encajan con sus gustos.',
+    body: 'Regístrate, puntúa películas y recibe sugerencias basadas en tus propios gustos.',
   },
   {
     icon: <ModelTrainingRoundedIcon />,
     title: '5 algoritmos comparables',
-    body: 'Popularidad bayesiana, KNN, SVD, NMF y AutoML. Podés comparar resultados lado a lado.',
+    body: 'Popularidad bayesiana, KNN, SVD, NMF y AutoML. Puedes comparar resultados lado a lado.',
   },
   {
     icon: <BoltRoundedIcon />,
     title: 'Resultados al instante',
-    body: 'Shortlist con el baseline + re-ranking con el modelo elegido. Inferencia rápida.',
+    body: 'Lista corta con el baseline + re-ranking con el modelo elegido. Inferencia rápida.',
   },
 ];
 
-export default function Home({ featured = [], stats = {} as any, communities = [] }: any) {
+export default function Home({ featured = [], stats = {} as any, communities = [], userRatings = [] }) {
+  const { auth }: any = usePage().props;
+
+  const getInitialRating = (movieId) => {
+    const r = userRatings.find(r => r.movie_id === movieId);
+    return r ? r.rating : 0;
+  };
+
   return (
     <Box>
       {/* ---------- HERO ---------- */}
@@ -83,7 +90,7 @@ export default function Home({ featured = [], stats = {} as any, communities = [
                 fontSize: { xs: '2.2rem', md: '3.25rem' },
               }}
             >
-              Encontrá tu próxima <Box component="span" sx={{ color: '#E50914' }}>película favorita</Box>
+              Encuentra tu próxima <Box component="span" sx={{ color: '#E50914' }}>película favorita</Box>
             </Typography>
             <Typography
               variant="body1"
@@ -96,34 +103,33 @@ export default function Home({ featured = [], stats = {} as any, communities = [
               }}
             >
               OmniRec combina cinco modelos de recomendación entrenados sobre 25 millones de
-              reseñas reales. Elegí un perfil que se parezca al tuyo y obtené un Top personalizado,
-              o probá vos mism@ qué piensan los algoritmos sobre cualquier película del catálogo.
+              reseñas reales. Regístrate para puntuar películas y obtener recomendaciones curadas para ti,
+              o explora el catálogo y los algoritmos en nuestro laboratorio.
             </Typography>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
               <Button
                 component={Link}
-                href="/discover/"
+                href={auth?.user ? "/discover/" : "/register/"}
                 size="large"
                 variant="contained"
                 color="primary"
                 endIcon={<ArrowForwardRoundedIcon />}
                 sx={{ fontWeight: 700 }}
               >
-                Descubrir recomendaciones
+                {auth?.user ? "Ver mis recomendaciones" : "Crear mi cuenta"}
               </Button>
               <Button
                 component={Link}
-                href="/lab/"
+                href="/catalog/"
                 size="large"
                 variant="outlined"
-                startIcon={<ScienceRoundedIcon />}
+                startIcon={<ExploreRoundedIcon />}
                 sx={{
                   borderColor: 'divider',
                   color: 'text.primary',
-                  '&:hover': { borderColor: '#E50914', bgcolor: 'rgba(229, 9, 20, 0.05)' },
                 }}
               >
-                Entrar al laboratorio
+                Explorar catálogo
               </Button>
             </Stack>
           </Grid>
@@ -132,7 +138,6 @@ export default function Home({ featured = [], stats = {} as any, communities = [
               {[
                 { label: 'Películas en catálogo', value: fmt(stats.movies) },
                 { label: 'Reseñas analizadas', value: fmt(stats.ratings) },
-                { label: 'Perfiles curados', value: fmt(stats.personas) },
                 { label: 'Comunidades de gustos', value: fmt(stats.communities) },
               ].map((s) => (
                 <Stack
@@ -167,7 +172,7 @@ export default function Home({ featured = [], stats = {} as any, communities = [
         <SectionTitle
           overline="Destacadas"
           title="Lo mejor puntuado del catálogo"
-          description="Ordenadas por score bayesiano (popularidad ponderada por volumen de reseñas). Son el punto de partida del recomendador."
+          description="Ordenadas por score bayesiano (popularidad ponderada por volumen de reseñas)."
           actions={
             <Button
               component={Link}
@@ -181,8 +186,13 @@ export default function Home({ featured = [], stats = {} as any, communities = [
         />
         <Grid container spacing={{ xs: 2, md: 3 }}>
           {featured.slice(0, 8).map((m, i) => (
-            <Grid key={m.movieId} size={{ xs: 6, sm: 4, md: 3 }}>
-              <MovieCard movie={m} rank={i + 1} />
+            <Grid key={m.movieId} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+              <MovieCard 
+                movie={m} 
+                rank={i + 1} 
+                isAuth={!!auth?.user} 
+                initialRating={getInitialRating(m.movieId)} 
+              />
             </Grid>
           ))}
         </Grid>
@@ -192,33 +202,33 @@ export default function Home({ featured = [], stats = {} as any, communities = [
       <Box sx={{ mb: { xs: 6, md: 10 } }}>
         <SectionTitle
           overline="Cómo funciona"
-          title="Tres formas de explorar OmniRec"
-          description="Desde una experiencia de usuario final hasta el detrás de escena algorítmico."
+          title="Tu experiencia en OmniRec"
+          description="Desde que te registras hasta que recibes recomendaciones personalizadas."
         />
         <Grid container spacing={3}>
           {[
             {
-              icon: <ExploreRoundedIcon />,
-              title: 'Descubrí recomendaciones',
-              body: 'Elegí un perfil que se parezca a vos, ajustá género o intensidad, y recibí un Top de películas sugeridas.',
-              cta: 'Descubrir',
-              href: '/discover/',
+              icon: <GroupsRoundedIcon />,
+              title: '1. Regístrate',
+              body: 'Crea tu cuenta en segundos para empezar a guardar tus propios puntajes.',
+              cta: 'Empezar',
+              href: '/register/',
               color: 'primary',
             },
             {
-              icon: <GroupsRoundedIcon />,
-              title: 'Explorá comunidades',
-              body: 'Los espectadores se agrupan en 6 comunidades con nombre propio: mirá qué los une y qué películas estrella tiene cada una.',
-              cta: 'Ver comunidades',
-              href: '/insights/',
+              icon: <ExploreRoundedIcon />,
+              title: '2. Puntúa películas',
+              body: 'Busca en el catálogo tus películas favoritas y dales una calificación de 1 a 5 estrellas.',
+              cta: 'Ir al catálogo',
+              href: '/catalog/',
               color: 'info',
             },
             {
-              icon: <ScienceRoundedIcon />,
-              title: 'Probá los modelos',
-              body: 'Compará cómo cinco algoritmos distintos puntúan la misma película, o generá un Top con el que prefieras.',
-              cta: 'Entrar al laboratorio',
-              href: '/lab/',
+              icon: <AutoAwesomeRoundedIcon />,
+              title: '3. Recibe recomendaciones',
+              body: 'Nuestro sistema usará tus votos para sugerirte nuevas películas usando algoritmos de IA.',
+              cta: 'Ver recomendaciones',
+              href: '/discover/',
               color: 'success',
             },
           ].map((card) => (
@@ -268,113 +278,6 @@ export default function Home({ featured = [], stats = {} as any, communities = [
           ))}
         </Grid>
       </Box>
-
-      {/* ---------- COMUNIDADES DESTACADAS ---------- */}
-      {communities.length > 0 && (
-        <Box sx={{ mb: { xs: 6, md: 10 } }}>
-          <SectionTitle
-            overline="Comunidades de gustos"
-            title="Audiencias con perfil propio"
-            description="El dataset se segmenta en 6 comunidades según similitud de gustos (KMeans sobre embeddings SVD). Estas son 3 de ellas."
-            actions={
-              <Button
-                component={Link}
-                href="/insights/"
-                variant="outlined"
-                endIcon={<ArrowForwardRoundedIcon />}
-              >
-                Ver las 6 comunidades
-              </Button>
-            }
-          />
-          <Grid container spacing={3}>
-            {communities.map((c) => (
-              <Grid key={c.cluster} size={{ xs: 12, md: 4 }}>
-                <Paper
-                  variant="outlined"
-                  sx={{
-                    p: { xs: 3, md: 4 },
-                    height: '100%',
-                    borderTopWidth: 4,
-                    borderTopColor: c.color,
-                    borderTopStyle: 'solid',
-                  }}
-                >
-                  <Typography
-                    variant="overline"
-                    sx={{ color: c.color, fontWeight: 700, display: 'block', mb: 0.5 }}
-                  >
-                    Comunidad · {c.top_genre_es}
-                  </Typography>
-                  <Typography variant="h6" sx={{ mb: 1, fontWeight: 800 }}>
-                    {c.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2, minHeight: 56 }}>
-                    {c.tagline}
-                  </Typography>
-                  <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
-                    <Chip size="small" label={`${c.n_users} personas`} variant="outlined" />
-                    <Chip size="small" label={`${c.n_movies} películas`} variant="outlined" />
-                    <Chip size="small" label={`Promedio ${c.rating_mean.toFixed(1)}★`} variant="outlined" />
-                  </Stack>
-                </Paper>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-      )}
-
-      {/* ---------- FEATURES ---------- */}
-      <Paper
-        variant="outlined"
-        sx={{
-          p: { xs: 4, md: 6 },
-          bgcolor: 'background.paper',
-          color: 'text.primary',
-          borderRadius: 2,
-          borderColor: 'divider',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <Box sx={{ position: 'relative' }}>
-          <Typography
-            variant="overline"
-            sx={{ color: '#E50914', letterSpacing: '0.14em', mb: 1, display: 'block' }}
-          >
-            Qué tiene OmniRec
-          </Typography>
-          <Typography variant="h4" sx={{ mb: 4, color: 'text.primary' }}>
-            Todo el pipeline de recomendación, en una misma experiencia.
-          </Typography>
-          <Grid container spacing={4}>
-            {FEATURES.map((f) => (
-              <Grid key={f.title} size={{ xs: 12, md: 4 }}>
-                <Box
-                  sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 2,
-                    bgcolor: 'rgba(229, 9, 20, 0.08)',
-                    color: '#E50914',
-                    display: 'grid',
-                    placeItems: 'center',
-                    mb: 2,
-                  }}
-                >
-                  {f.icon}
-                </Box>
-                <Typography variant="h6" sx={{ mb: 1, color: 'text.primary' }}>
-                  {f.title}
-                </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  {f.body}
-                </Typography>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-      </Paper>
     </Box>
   );
 }

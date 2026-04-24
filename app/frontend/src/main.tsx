@@ -15,6 +15,9 @@ import Discover from './pages/Discover';
 import Catalog from './pages/Catalog';
 import Lab from './pages/Lab';
 import Insights from './pages/Insights';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Profile from './pages/Profile';
 
 const PAGES = {
   Home,
@@ -22,6 +25,9 @@ const PAGES = {
   Catalog,
   Lab,
   Insights,
+  Login,
+  Register,
+  Profile,
 };
 
 createInertiaApp({
