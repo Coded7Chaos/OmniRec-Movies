@@ -10,7 +10,7 @@ Se ha transformado la aplicación de un visor estático de "personas" del datase
 ## 2. Cambios en el Backend (Django)
 
 ### 2.1 Modelos de Datos (`models.py`)
-- Se implementó el modelo `Movie` para persistir el catálogo oficial filtrado de MovieLens 25M (5,915 películas con ≥ 20 votos).
+- Se implementó el modelo `Movie` para persistir el catálogo completo procesado de MovieLens 25M (55,113 películas).
 - Se implementó el modelo `MovieRating` para almacenar las interacciones de los usuarios reales.
 - Integración con `django.contrib.auth` para la gestión de cuentas.
 

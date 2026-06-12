@@ -23,9 +23,9 @@
 *   **Documentación:** `01_Business_Understanding_and_EDA.ipynb`.
 
 ### Fase 3: Preparación de Datos
-*   **Muestreo Estratificado:** Reducción al 5% manteniendo la representatividad estadística.
-*   **Filtrado de Calidad:** Solo películas con ≥ 20 votos para evitar ruido (long tail).
-*   **Ingeniería de Características:** Extracción de años de títulos y normalización de géneros.
+*   **Muestreo Estratificado:** Incrementado al 60% para maximizar el aprendizaje de los modelos latentes sin comprometer la factibilidad computacional.
+*   **Filtrado de Calidad:** Mantenemos un catálogo limpio enfocado en la relevancia, procesando más de 55,000 títulos únicos.
+*   **Ingeniería de Características:** Procesamiento masivo de timestamps para validación temporal (leave-last-one-out).
 *   **Documentación:** `02_Data_Sampling_and_Cleaning.ipynb`.
 
 ### Fase 4 & 5: Modelado y Evaluación
