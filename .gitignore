@@ -1,12 +1,59 @@
-# Ignorar datasets pesados
+# =============================================================================
+# Datos y modelos pesados (regenerables con los notebooks / train_models.py)
+# =============================================================================
 data/ml-25m/*
 !data/ml-25m/README.txt
+# Artefactos de descarga del dataset
+data/*.zip
+data/*.zip.md5
 
-# Modelos entrenados
 models/*
 !models/README.md
 
-# Ignorar entornos virtuales y basura del sistema
+# =============================================================================
+# Python
+# =============================================================================
 venv/
+.venv/
+env/
 __pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# =============================================================================
+# Backend FastAPI (app/backend/)
+# =============================================================================
+# Base de datos local de usuarios/ratings (se crea al arrancar)
+app/backend/omnirec.db
+app/backend/*.db
+# Secretos
+.env
+.env.*
+!.env.example
+
+# =============================================================================
+# Frontend Next.js (app/web-app/ tiene su propio .gitignore; esto es respaldo)
+# =============================================================================
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+npm-debug.log*
+
+# =============================================================================
+# Sistema operativo / editores
+# =============================================================================
 .DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# =============================================================================
+# Logs y temporales
+# =============================================================================
+*.log
+*.tmp

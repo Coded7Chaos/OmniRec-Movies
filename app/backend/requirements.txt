@@ -1,0 +1,8 @@
+# Backend FastAPI (OmniRec Cinema). Se suma a los requirements del pipeline ML
+# en la raíz del proyecto (pandas, numpy, pyarrow, scikit-surprise, etc.).
+fastapi>=0.115
+uvicorn[standard]>=0.32
+sqlalchemy>=2.0
+pyjwt>=2.9
+bcrypt>=4.2
+pydantic[email]>=2.9

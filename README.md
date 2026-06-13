@@ -6,7 +6,7 @@ Sistema inteligente de recomendación de películas sobre **MovieLens 25M** (Gro
 2. **Aprendizaje profundo con embeddings** (Fase 6, parte 1) — NCF / Two-Tower. Pendiente.
 3. **Recuperación semántica / RAG** sobre tags y genome-scores (Fase 6, parte 2). Pendiente.
 
-El deployment (Fase 6) ya cuenta con una **app Django** operativa en `app/` que expone los 5 modelos entrenados mediante una interfaz web amigable (HTMX + Tailwind), sin necesidad de exponer IDs numéricos al usuario final.
+El deployment (Fase 6) cuenta con una plataforma web completa en `app/`: un **backend FastAPI** (`app/backend/`) que sirve los modelos entrenados (baseline bayesiano, SVD con *folding-in* y comunidades KMeans) detrás de una API REST con autenticación JWT, y una **aplicación Next.js** (`app/web-app/`) con estética de cine comercial — **OmniCine** — donde usuarios reales se registran, exploran la cartelera, califican películas y reciben recomendaciones personalizadas en tiempo real. Los invitados sin cuenta también reciben personalización: su feedback se guarda en el navegador y se migra al servidor al crear la cuenta.
 
 ---
 
@@ -16,7 +16,7 @@ El deployment (Fase 6) ya cuenta con una **app Django** operativa en `app/` que 
 - [2. Requisitos previos](#2-requisitos-previos)
 - [3. Instalación](#3-instalación)
 - [4. Ejecución de los notebooks (pipeline ML)](#4-ejecución-de-los-notebooks-pipeline-ml)
-- [5. Ejecución de la app Django (testbench de modelos)](#5-ejecución-de-la-app-django-testbench-de-modelos)
+- [5. Ejecución de la aplicación web (FastAPI + Next.js)](#5-ejecución-de-la-aplicación-web-fastapi--nextjs)
 - [6. Modelos entrenados y métricas](#6-modelos-entrenados-y-métricas)
 - [7. Documentación detallada](#7-documentación-detallada)
 - [8. Solución de problemas](#8-solución-de-problemas)
@@ -53,14 +53,15 @@ OmniRec-Movies/
 │   └── automl_winner.pkl
 ├── reports/                              # SOLO documentación Markdown
 │   ├── Proyecto.md                       # Estado y guía técnica del proyecto
-│   ├── MEJORAS_NOTEBOOKS.md              # Historial de iteraciones sobre los notebooks
-│   ├── CAMBIOS_APP_DJANGO_2026-04-20.md  # Construcción inicial de la app Django (iter 3)
-│   └── UX_APP_DJANGO_2026-04-20.md       # Refinamiento de UX (iter 4)
-├── app/                                  # Demo Django (Fase 6 — Deployment) ✅
-│   ├── manage.py
-│   ├── .env.example                      # Plantilla de variables de entorno
-│   ├── core/                             # Proyecto Django (settings / urls / asgi / wsgi)
-│   └── apps/recommender/                 # App principal (testbench de los 5 modelos)
+│   ├── IMPLEMENTACION_AUTH_RECS_2026-04-24.md      # Iteración previa (app Django, retirada)
+│   └── IMPLEMENTACION_FASTAPI_NEXTJS_2026-06-12.md # Plataforma actual FastAPI + Next.js
+├── app/                                  # Plataforma web (Fase 6 — Deployment) ✅
+│   ├── backend/                          # API REST FastAPI (modelos + auth JWT + SQLite)
+│   │   ├── main.py                       # Punto de entrada (uvicorn main:app)
+│   │   ├── ml/engine.py                  # Motor de inferencia (baseline + SVD folding-in)
+│   │   ├── routers/                      # auth, movies, recommendations, ratings, profile, meta
+│   │   └── scripts/train_models.py       # Regenera models/svd_model.pkl desde los parquets
+│   └── web-app/                          # Frontend Next.js 16 — "OmniCine" (cine comercial)
 ├── src/                                  # Scripts reutilizables (pendiente)
 ├── config/                               # Parámetros de experimentos (pendiente)
 ├── requirements.txt
@@ -75,6 +76,7 @@ OmniRec-Movies/
 - **Compilador C/C++** para `scikit-surprise`:
   - macOS/Linux: `gcc` o `clang`.
   - Windows: Visual C++ Build Tools.
+- **Node.js 18.18+** (recomendado 20+) con npm, para el frontend Next.js de `app/web-app/`.
 - **Git** para clonar el repositorio.
 - **RAM recomendada:** 16 GB. El notebook 01 usa Polars lazy sobre los 25 M ratings; el notebook 03 necesita ~3 GB adicionales durante el AutoML.
 - *(Opcional)* **VS Code** con la extensión **Jupyter** si querés ejecutar los notebooks desde el editor.
@@ -111,7 +113,7 @@ pip install -r requirements.txt
 `requirements.txt` contiene dos bloques:
 
 - **Pipeline ML (notebooks 01–03):** `numpy<2`, `polars`, `pandas`, `pyarrow`, `scikit-learn`, `scikit-surprise`, `matplotlib`, `seaborn`, `jupyter`, `ipykernel`, `wordcloud`, `joblib`, etc.
-- **Demo Django (app/):** `Django 6.0`, `django-environ`, `django-htmx`, `django-browser-reload`, `django-tailwind`, `pytailwindcss`.
+- **Backend FastAPI (app/backend/):** `fastapi`, `uvicorn`, `sqlalchemy`, `pyjwt`, `bcrypt`, `pydantic[email]` (también listados en `app/backend/requirements.txt`).
 
 > **Nota sobre NumPy:** `scikit-surprise==1.1.4` se distribuye como wheel compilado contra NumPy 1.x. Por eso `requirements.txt` fija `numpy>=1.26,<2.0`. Si instalás NumPy 2.x a mano verás el error `numpy.core.multiarray failed to import`.
 
@@ -150,68 +152,167 @@ El orden **01 → 02 → 03** es lineal y reproduce las fases 1 a 5 de CRISP-DM.
 | 02 | `02_Data_Sampling_and_Cleaning.ipynb` | 3 | Parquets del 60 % principal y del 10 % para KNN, sin filtro global de cold-start. |
 | 03 | `03_ML_Baseline_AutoML.ipynb` | 4 + 5 | 5 `*.pkl` en `models/` + `data/intermediate/model_comparison.csv`, `user_clusters.parquet`, `item_clusters.parquet`. |
 
-El notebook 03 es requisito indispensable para que la app Django funcione (carga los pickles y parquets).
+El notebook 03 (o `app/backend/scripts/train_models.py`) es requisito para que la aplicación web funcione: el backend carga `baseline_scores.pkl`, `svd_model.pkl` y los parquets intermedios.
 
 ---
 
-## 5. Ejecución de la app Django (testbench de modelos)
+## 5. Ejecución de la aplicación web (FastAPI + Next.js)
 
-La app permite probar los modelos entrenados contra cualquier usuario de la muestra principal del 60 %. No expone IDs al usuario: genera **42 personas** (6 clusters × top-7 usuarios) con etiquetas del tipo *"Fan de Acción · 1 909 reseñas · Grupo 0"*, y permite elegir películas por **título con autocompletado**.
+La plataforma **OmniCine** tiene dos procesos independientes que se levantan en
+terminales separadas:
 
-### 5.1 Configuración
+| Proceso | Carpeta | Puerto | URL |
+|---|---|---|---|
+| Backend FastAPI (API + modelos) | `app/backend/` | 8000 | <http://localhost:8000> · docs en `/docs` |
+| Frontend Next.js (OmniCine) | `app/web-app/` | 3000 | <http://localhost:3000> |
 
-```bash
-cd app
-cp .env.example .env
-```
+**Requisitos:** el venv del proyecto instalado (sección 3), **Node.js 18.18+**
+(recomendado 20+) con npm, y los parquets del notebook 02 en
+`data/intermediate/`.
 
-Editá `.env` si querés cambiar las rutas por defecto. Las variables soportadas son:
-
-| Variable | Por defecto | Qué hace |
-|---|---|---|
-| `DJANGO_SECRET_KEY` | `change-me` | Secreto de Django (cambialo en producción). |
-| `DJANGO_DEBUG` | `True` | Modo debug. |
-| `DJANGO_ALLOWED_HOSTS` | `*` | Hosts permitidos (coma-separado). |
-| `OMNIREC_MODELS_DIR` | `<repo>/models` | Dónde están los `*.pkl`. |
-| `OMNIREC_DATA_DIR` | `<repo>/data/intermediate` | Dónde están los parquets preparados (`ratings_prepared_60pct.parquet`, `movies_prepared_60pct.parquet`) y los artefactos del notebook 03. |
-| `OMNIREC_EAGER_LOAD` | `False` | Si es `True`, precarga SVD/NMF/Baseline al iniciar (KNN siempre es lazy por peso: 305 MB). |
-
-### 5.2 Migraciones iniciales
+### 5.0 Inicio rápido (resumen)
 
 ```bash
-python manage.py migrate
+# Terminal 1 — Backend
+./venv/bin/python app/backend/scripts/train_models.py   # solo la primera vez
+cd app/backend
+../../venv/bin/uvicorn main:app --reload --port 8000
+
+# Terminal 2 — Frontend
+cd app/web-app
+npm install                                              # solo la primera vez
+npm run dev
 ```
 
-Esto crea `db.sqlite3` (la app no define modelos de dominio propios; sólo las tablas internas de Django).
+Abrí <http://localhost:3000>. El detalle de cada paso está abajo.
 
-### 5.3 Levantar el servidor de desarrollo
+### 5.1 Inicializar el backend (primera vez)
 
-```bash
-python manage.py runserver
-```
+1. **Dependencias** (sobre el venv del proyecto; ya vienen incluidas si
+   instalaste `requirements.txt` de la raíz):
 
-Abrí <http://127.0.0.1:8000/> en el navegador.
+   ```bash
+   ./venv/bin/pip install -r app/backend/requirements.txt
+   ```
 
-### 5.4 Rutas disponibles
+2. **Artefacto del modelo.** El backend necesita `models/svd_model.pkl`
+   (no se versiona en git por peso). Se genera en menos de un minuto:
+
+   ```bash
+   ./venv/bin/python app/backend/scripts/train_models.py
+   ```
+
+   El script reproduce los hiperparámetros del notebook 03 (SVD: 50 factores,
+   20 épocas, seed 42) sobre los ratings disponibles en `data/intermediate/`,
+   recalcula los clústeres KMeans (k=6) y guarda el artefacto compacto
+   (~6 MB). También requiere `models/baseline_scores.pkl` (versionado) y
+   `data/ml-25m/links.csv` (IDs de IMDb/TMDb para las imágenes).
+
+3. **Variables de entorno** *(opcional en desarrollo)*: copiá
+   `app/backend/.env.example` y exportá las variables si querés cambiar los
+   valores por defecto:
+
+   | Variable | Por defecto | Qué hace |
+   |---|---|---|
+   | `OMNIREC_SECRET_KEY` | clave dev insegura | Firma de los JWT (cambiar en producción). |
+   | `OMNIREC_DATABASE_URL` | `sqlite:///./omnirec.db` | Conexión SQLAlchemy. |
+   | `OMNIREC_CORS_ORIGINS` | `http://localhost:3000,...` | Orígenes permitidos, separados por coma. |
+
+4. **Levantar el servidor:**
+
+   ```bash
+   cd app/backend
+   ../../venv/bin/uvicorn main:app --reload --port 8000
+   ```
+
+   Al arrancar crea `omnirec.db` (SQLite con usuarios, ratings y watchlist;
+   gitignorado) y carga el motor de recomendación en memoria (~1 s).
+   Verificá con <http://localhost:8000/api/health> o la documentación
+   interactiva en <http://localhost:8000/docs>.
+
+### 5.2 Inicializar el frontend (primera vez)
+
+1. **Dependencias:**
+
+   ```bash
+   cd app/web-app
+   npm install
+   ```
+
+2. **Variables de entorno** *(opcional)*: por defecto el frontend apunta a
+   `http://localhost:8000`. Si el backend corre en otra URL, creá
+   `app/web-app/.env.local`:
+
+   ```bash
+   NEXT_PUBLIC_API_URL=http://localhost:8000
+   ```
+
+3. **Modo desarrollo** (hot-reload):
+
+   ```bash
+   npm run dev          # http://localhost:3000
+   ```
+
+4. **Modo producción:**
+
+   ```bash
+   npm run build
+   npm run start        # sirve el build optimizado en el puerto 3000
+   ```
+
+### 5.3 Qué hace la aplicación
+
+- **Portada** (`/`): marquesina rotativa con las destacadas y filas por
+  género; si hay historial, aparece la fila "Para ti" personalizada.
+- **Cartelera** (`/cartelera`): catálogo completo (55,113 películas) con
+  búsqueda, filtros por género, ordenamientos y paginación.
+- **Ficha** (`/pelicula/[id]`): calificación con estrellas (medios puntos),
+  afinidad estimada por el modelo y similares por embeddings del SVD.
+- **Para ti** (`/para-ti`): Top-N personalizado + comunidad de gustos.
+- **Perfil** (`/perfil`): estadísticas, persona, calificadas y "mi lista".
+- **Cuentas** (`/login`, `/registro`): sesión con JWT. Sin cuenta, el
+  feedback se guarda en el navegador (localStorage) y personaliza igual; al
+  registrarse se migra automáticamente al servidor.
+- **Imágenes:** pósters y fondos reales desde el CDN público de Metahub por
+  `imdbId` (sin API key), con arte procedural plano como respaldo si no hay
+  imagen.
+
+### 5.4 Endpoints principales del API
 
 | Ruta | Propósito |
 |---|---|
-| `/` | Home con onboarding (3 pasos), KPIs y tabla de métricas. |
-| `/recommend/` | Recomendar Top-N películas no vistas para una persona. Elegís persona + algoritmo + N. |
-| `/predict/` | Predecir la nota de una persona para una película específica. Compara los 5 modelos y resalta el de mayor predicción. |
-| `/catalog/` | Buscador del catálogo con HTMX (5 915 películas). |
-| `/clusters/` | Visualización de los 6 clusters de usuarios. |
-| `/health/` | JSON de estado: `{ status, sample_users, sample_movies, models_loaded, personas }`. |
+| `POST /api/auth/register` · `POST /api/auth/login` · `GET /api/auth/me` | Registro, inicio de sesión (JWT) y sesión actual. |
+| `GET /api/movies` | Catálogo con búsqueda, filtro por género/década, orden y paginación. |
+| `GET /api/movies/{id}` · `GET /api/movies/{id}/similar` | Ficha de película y vecinas por coseno en el espacio latente del SVD. |
+| `GET /api/recommendations` · `POST /api/recommendations/guest` | Top-N personalizado (SVD folding-in) para usuarios o invitados. |
+| `GET /api/recommendations/home` · `POST /api/recommendations/home/guest` | Payload completo de la portada (héroe + filas por género). |
+| `GET/POST/DELETE /api/ratings` · `POST /api/ratings/sync` | Feedback del usuario; `sync` migra los ratings de invitado al crear sesión. |
+| `GET/POST/DELETE /api/watchlist` | "Mi lista" del usuario. |
+| `GET /api/profile` · `POST /api/profile/guest` | Estadísticas + comunidad de gustos (folding-in + centroide KMeans más cercano). |
+| `GET /api/meta/models` · `GET /api/meta/stats` | Tabla comparativa del notebook 03 y métricas del catálogo. |
 
-### 5.5 Stack técnico
+### 5.5 Estrategia de recomendación
 
-- **Django 6.0** con `apps.recommender` (namespaced bajo `apps/`).
-- **django-environ** para la configuración vía `.env`.
-- **django-htmx** para las actualizaciones parciales (autocompletado, resultados de recomendación, búsqueda).
-- **django-browser-reload** para hot-reload en desarrollo.
-- **Tailwind** vía CDN en `base.html` (zero-setup). `django-tailwind` + `pytailwindcss` están en `requirements.txt` para el pipeline de producción.
-- **Registry singleton** (`apps/recommender/services.py`) con `threading.Lock` que carga los pickles y parquets de forma perezosa y thread-safe.
-- **Patrón retriever + re-ranker:** se eligen 400 candidatos por score bayesiano y luego se reordenan con el modelo seleccionado — evita puntuar las 5 915 películas en cada request.
+- **Cold start (sin ratings):** ranking por **popularidad bayesiana**
+  (`models/baseline_scores.pkl`, fórmula IMDb del notebook 03).
+- **Con historial:** ***folding-in*** — se estima el vector latente del
+  usuario resolviendo un ridge sobre los factores de los ítems que calificó,
+  y se re-rankea un pool de ~2,500 candidatos populares con la predicción SVD
+  (`mu + bu + bi + qi·pu`).
+- **Comunidades:** el vector del usuario se asigna al centroide KMeans (k=6)
+  más cercano; cada clúster tiene un arquetipo nombrado según el *lift* de
+  géneros (p. ej. *Exploradores de Mundos*, *Detectives de Medianoche*).
+- **Similitud ítem-ítem:** coseno entre embeddings de películas del SVD.
+
+### 5.6 Stack técnico
+
+- **FastAPI + SQLAlchemy + SQLite** (usuarios, ratings, watchlist) con JWT
+  (`PyJWT`) y `bcrypt`.
+- **Next.js 16 (App Router, Turbopack) + Tailwind CSS v4 + lucide-react +
+  motion**, con diseño plano y sobrio (sin gradientes ni colores saturados) y
+  animaciones fluidas.
+- **Feedback de invitados** persistido en `localStorage` y migrado
+  automáticamente al servidor al registrarse.
 
 ---
 
@@ -233,10 +334,9 @@ SVD es el candidato principal por equilibrio entre calidad, velocidad y reutiliz
 
 ## 7. Documentación detallada
 
-- **`reports/Proyecto.md`** — Estado consolidado del proyecto, matriz CRISP-DM, decisiones metodológicas, detalle de cada notebook y de la app Django.
-- **`reports/MEJORAS_NOTEBOOKS.md`** — Historial de iteraciones sobre los notebooks (iter 1: refactor técnico; iter 2: reorganización al flujo lineal).
-- **`reports/CAMBIOS_APP_DJANGO_2026-04-20.md`** — Construcción inicial de la app Django (iter 3): arquitectura, endpoints, decisiones de diseño.
-- **`reports/UX_APP_DJANGO_2026-04-20.md`** — Refinamiento de UX (iter 4): eliminación de IDs visibles, personas con etiquetas, autocompletado de películas, paleta sólida sin gradientes, onboarding.
+- **`reports/Proyecto.md`** — Estado consolidado del proyecto, matriz CRISP-DM, decisiones metodológicas y detalle de cada notebook.
+- **`reports/IMPLEMENTACION_FASTAPI_NEXTJS_2026-06-12.md`** — Plataforma web actual: backend FastAPI, frontend Next.js (OmniCine), estrategia de inferencia y decisiones de diseño.
+- **`reports/IMPLEMENTACION_AUTH_RECS_2026-04-24.md`** — Iteración previa sobre la app Django (retirada del repositorio).
 - **`data/NOTAS_PROCEDENCIA.md`** — Origen y licencia del dataset.
 - **`data/README.md`, `notebooks/README.md`, `src/README.md`, `config/README.md`, `models/README.md`, `reports/README.md`, `app/README.md`** — Notas breves por carpeta.
 
@@ -250,8 +350,8 @@ El venv no está activo o las dependencias no se instalaron. Ejecutá `source ve
 **`numpy.core.multiarray failed to import` al importar `surprise`**
 Tenés NumPy 2.x instalado. Forzá la versión compatible: `pip install "numpy>=1.26,<2.0"`.
 
-**La app Django arranca pero `/health/` dice `models_loaded: 0`**
-Los `*.pkl` no existen aún. Ejecutá el notebook 03 completo antes de levantar el servidor, o apuntá `OMNIREC_MODELS_DIR` en `.env` a la carpeta donde sí estén.
+**El backend falla al arrancar con `No existe models/svd_model.pkl`**
+Generá el artefacto de inferencia: `./venv/bin/python app/backend/scripts/train_models.py` (tarda menos de un minuto). Requiere los parquets del notebook 02 en `data/intermediate/`.
 
 **Los notebooks no aparecen con el kernel correcto en VS Code**
 Tras activar el venv por primera vez, registralo como kernel: `python -m ipykernel install --user --name omnirec --display-name "Python (OmniRec)"`. Luego seleccionalo desde VS Code.
@@ -259,8 +359,11 @@ Tras activar el venv por primera vez, registralo como kernel: `python -m ipykern
 **`scikit-surprise` falla al instalar en Windows**
 Instalá **Microsoft C++ Build Tools** desde <https://visualstudio.microsoft.com/visual-cpp-build-tools/>.
 
-**Puerto 8000 ocupado al hacer `runserver`**
-Usá otro puerto: `python manage.py runserver 8080`.
+**Puerto 8000 ocupado al levantar el backend**
+Usá otro puerto: `uvicorn main:app --port 8080`, y apuntá el frontend con `NEXT_PUBLIC_API_URL=http://localhost:8080` en `app/web-app/.env.local`.
+
+**La web carga pero muestra "No se pudo conectar con el servidor"**
+El backend FastAPI no está corriendo o el CORS no permite el origen del frontend. Levantá `uvicorn main:app --port 8000` desde `app/backend/` y verificá `OMNIREC_CORS_ORIGINS`.
 
 ---
 

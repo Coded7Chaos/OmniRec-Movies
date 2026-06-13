@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@theme {
+  /* Paleta sobria de cine: neutros oscuros, rojo institucional, ámbar apagado */
+  --color-night-950: #0e0f12;
+  --color-night-900: #14161a;
+  --color-night-800: #1a1d23;
+  --color-night-700: #22262e;
+  --color-night-600: #2c313b;
+  --color-night-500: #3b414e;
+
+  --color-brand-300: #d9787e;
+  --color-brand-400: #c44e55;
+  --color-brand-500: #b3262e;
+  --color-brand-600: #992027;
+  --color-brand-700: #7d1a20;
+
+  --color-gold-300: #e3c98e;
+  --color-gold-400: #d6b264;
+  --color-gold-500: #c9a03f;
+  --color-gold-600: #a98430;
+
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bebas), var(--font-outfit), sans-serif;
+
+  --animate-fade-up: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-pulse-soft: pulse-soft 1.6s ease-in-out infinite;
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+}
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-night-950);
+  color: #f2f3f5;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-brand-500);
+  color: white;
+}
+
+/* Scrollbar discreto */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-night-500) transparent;
+}
+*::-webkit-scrollbar {
+  height: 8px;
+  width: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-night-500);
+  border-radius: 9999px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Carrusel: ocultar scrollbar manteniendo scroll */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Esqueleto de carga: pulso plano, sin brillos */
+.skeleton {
+  background: var(--color-night-800);
+  animation: var(--animate-pulse-soft);
+}

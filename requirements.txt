@@ -24,14 +24,14 @@ joblib
 # auto-surprise==0.1.8
 
 # =============================================================================
-# Demo Django (CRISP-DM Fase 6 — Deployment) en `app/`
+# Backend FastAPI (CRISP-DM Fase 6 — Deployment) en `app/backend/`
 # =============================================================================
-# Stack: Django + Inertia.js + React 18 + MUI 6. El frontend vive en
-# `app/frontend/` y se compila con Vite (`npm run build`). django-vite
-# lee `frontend/dist/.vite/manifest.json` para servir los assets
-# correctos con el hash apropiado.
-Django==6.0.*
-django-environ==0.13.*
-inertia-django==1.2.*
-django-vite==3.0.*
-PyMySQL=1.1.2
+# API REST que sirve los modelos entrenados (baseline bayesiano + SVD con
+# folding-in) a la aplicación web Next.js de `app/web-app/`.
+# Espejo de `app/backend/requirements.txt`.
+fastapi>=0.115
+uvicorn[standard]>=0.32
+sqlalchemy>=2.0
+pyjwt>=2.9
+bcrypt>=4.2
+pydantic[email]>=2.9
