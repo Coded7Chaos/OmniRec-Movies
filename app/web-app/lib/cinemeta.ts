@@ -58,7 +58,11 @@ interface RawMeta {
   background?: string;
 }
 
-const BASE = "https://v3-cinemeta.strem.io/meta/movie";
+const BASE = "https://v3-cinemeta.strem.io/meta";
+// El catálogo de MovieLens incluye algún título de TV (p. ej. la miniserie
+// "Over the Garden Wall"). Cinemeta sirve películas y series en endpoints
+// distintos, así que probamos ambos tipos por orden.
+const KINDS = ["movie", "series"] as const;
 const cache = new Map<string, MovieMeta | null>();
 
 function toArray(value: unknown): string[] {
@@ -97,9 +101,29 @@ function normalize(raw: RawMeta): MovieMeta {
 }
 
 /**
- * Obtiene la ficha enriquecida de Cinemeta para un id de IMDb. Resiliente:
- * cualquier fallo (404/red/JSON inválido) resuelve a `null`, nunca lanza
- * (salvo aborto de la petición, que se propaga para que el caller lo ignore).
+ * Pide la ficha a un endpoint concreto (movie|series). Solo confiamos en la
+ * respuesta DIRECTA del catálogo estático v3: si hay un redirect
+ * (`res.redirected`), el id no es de ese tipo de contenido y Cinemeta cae a su
+ * capa "live", que devuelve coincidencias erróneas — p. ej. para el id de la
+ * serie "Over the Garden Wall" el endpoint de película redirige y devuelve una
+ * película porno distinta con el mismo imdb_id. En ese caso lo descartamos.
+ */
+async function fetchKind(
+  tag: string,
+  kind: string,
+  signal?: AbortSignal,
+): Promise<RawMeta | null> {
+  const res = await fetch(`${BASE}/${kind}/${tag}.json`, { signal });
+  if (!res.ok || res.redirected) return null;
+  const data = (await res.json()) as { meta?: RawMeta };
+  return data?.meta ?? null;
+}
+
+/**
+ * Obtiene la ficha enriquecida de Cinemeta para un id de IMDb, probando primero
+ * como película y, si no es una, como serie. Resiliente: cualquier fallo
+ * (404/redirect/red/JSON inválido) resuelve a `null`, nunca lanza (salvo aborto
+ * de la petición, que se propaga para que el caller lo ignore).
  */
 export async function fetchMovieMeta(
   imdbId: number | null | undefined,
@@ -109,26 +133,21 @@ export async function fetchMovieMeta(
   if (!tag) return null;
   if (cache.has(tag)) return cache.get(tag) ?? null;
 
-  try {
-    const res = await fetch(`${BASE}/${tag}.json`, { signal });
-    if (!res.ok) {
-      cache.set(tag, null);
-      return null;
+  let raw: RawMeta | null = null;
+  for (const kind of KINDS) {
+    try {
+      raw = await fetchKind(tag, kind, signal);
+      if (raw) break;
+    } catch (err) {
+      // El aborto al desmontar/cambiar de película no es un error real.
+      if (signal?.aborted) throw err;
+      // Red/CORS en el fallback: probamos el siguiente tipo.
     }
-    const data = (await res.json()) as { meta?: RawMeta };
-    if (!data?.meta) {
-      cache.set(tag, null);
-      return null;
-    }
-    const meta = normalize(data.meta);
-    cache.set(tag, meta);
-    return meta;
-  } catch (err) {
-    // El aborto al desmontar/cambiar de película no es un error real.
-    if (signal?.aborted) throw err;
-    cache.set(tag, null);
-    return null;
   }
+
+  const meta = raw ? normalize(raw) : null;
+  cache.set(tag, meta);
+  return meta;
 }
 
 /* --------------------------- helpers de presentación --------------------------- */

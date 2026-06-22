@@ -184,9 +184,14 @@ function SearchContent() {
             {data.results.length} resultados · encoder{" "}
             <span className="font-mono text-white/55">{data.encoder.split("/").pop()}</span>
           </p>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 items-start gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {data.results.map((r, i) => (
-              <SearchResultCard key={r.movieId} result={r} index={i} />
+              <SearchResultCard
+                key={r.movieId}
+                result={r}
+                imdbId={r.imdbId}
+                index={i}
+              />
             ))}
           </div>
         </>

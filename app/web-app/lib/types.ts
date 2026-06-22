@@ -92,6 +92,8 @@ export interface SemanticResult {
   numRatings: number;
   evidence: string[];
   descriptor: string;
+  imdbId: number | null;
+  tmdbId: number | null;
 }
 
 export interface SemanticResponse {

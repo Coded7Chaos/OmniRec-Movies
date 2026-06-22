@@ -7,6 +7,7 @@ Es independiente del motor de recomendación: solo necesita el índice FAISS de
 from fastapi import APIRouter, HTTPException, Query
 
 from ml import semantic
+from ml.engine import get_engine
 
 router = APIRouter(prefix="/api/search", tags=["search"])
 
@@ -25,4 +26,10 @@ def semantic_search(
         result = semantic.rag(q, k) if generate else semantic.search(q, k)
     except FileNotFoundError as e:
         raise HTTPException(503, f"Índice semántico no disponible: {e}")
+
+    # El índice FAISS no guarda los ids externos; los añadimos desde el catálogo
+    # del engine (lookup en memoria) para que el frontend muestre las portadas.
+    engine = get_engine()
+    for item in result.get("results", []):
+        item.update(engine.external_ids(item["movieId"]))
     return result

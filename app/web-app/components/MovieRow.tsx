@@ -61,10 +61,14 @@ export default function MovieRow({
       </div>
 
       <div className="relative">
+        {/* El padding vertical da aire a la elevación del hover (scale + y) y a la
+            animación de entrada de las tarjetas: con overflow-x:auto el navegador
+            fuerza overflow-y a auto, así que sin este margen la carátula se
+            recortaría arriba y aparecería un scroll vertical fantasma. */}
         <div
           ref={scroller}
           onScroll={updateArrows}
-          className="no-scrollbar flex gap-4 overflow-x-auto scroll-smooth px-4 pb-2 sm:px-8"
+          className="no-scrollbar flex gap-4 overflow-x-auto scroll-smooth px-4 pt-3 pb-5 sm:px-8"
         >
           {movies.map((m, i) => (
             <MovieCard key={m.movieId} movie={m} index={i} />

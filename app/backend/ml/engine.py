@@ -148,6 +148,18 @@ class RecommenderEngine:
             **extra,
         }
 
+    def external_ids(self, movie_id: int) -> dict:
+        """imdbId/tmdbId de una película, para enriquecer respuestas que no los
+        traen (p. ej. la búsqueda semántica, que arma sus filas desde el índice
+        FAISS). Lookup en memoria por movieId; películas desconocidas -> None."""
+        if movie_id not in self.movies.index:
+            return {"imdbId": None, "tmdbId": None}
+        row = self.movies.loc[movie_id]
+        return {
+            "imdbId": int(row["imdbId"]) if pd.notna(row.get("imdbId")) else None,
+            "tmdbId": int(row["tmdbId"]) if pd.notna(row.get("tmdbId")) else None,
+        }
+
     def movies_payload(self, movie_ids, scores: dict[int, float] | None = None) -> list[dict]:
         out = []
         for mid in movie_ids:
