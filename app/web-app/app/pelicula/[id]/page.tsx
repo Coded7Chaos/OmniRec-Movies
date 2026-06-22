@@ -1,12 +1,17 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+/* eslint-disable @next/next/no-img-element --
+   El backdrop viene del CDN externo de Metahub, ya optimizado; no lo
+   proxyeamos por el optimizador de Next para no añadir latencia. */
+
+import { use, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import {
   ArrowLeft,
   Bookmark,
   ExternalLink,
+  Play,
   Popcorn,
   Sparkles,
   Star,
@@ -17,9 +22,59 @@ import { useStore } from "@/lib/store";
 import MoviePoster from "@/components/MoviePoster";
 import StarRating from "@/components/StarRating";
 import MovieRow from "@/components/MovieRow";
+import MovieExtras from "@/components/MovieExtras";
+import TrailerModal from "@/components/TrailerModal";
 import { RowSkeleton } from "@/components/Skeletons";
-import { genreLabel, posterColor } from "@/lib/poster";
+import { backdropImageUrl, genreLabel, posterColor } from "@/lib/poster";
+import { fetchMovieMeta, type MovieMeta } from "@/lib/cinemeta";
 import type { Movie } from "@/lib/types";
+
+/** Backdrop fotográfico de la cabecera (Metahub vía imdbId) con degradados
+ *  que lo funden hacia el fondo para que título y póster queden legibles. */
+function DetailBackdrop({ movie }: { movie: Movie }) {
+  const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const src = backdropImageUrl(movie.imdbId, "large");
+
+  // Igual que en MoviePoster: si la imagen ya está cacheada, onLoad puede no
+  // dispararse, así que comprobamos `complete` al montar / cambiar de src.
+  useEffect(() => {
+    setLoaded(false);
+    setFailed(false);
+    const img = imgRef.current;
+    if (img?.complete) {
+      if (img.naturalWidth > 0) setLoaded(true);
+      else setFailed(true);
+    }
+  }, [src]);
+
+  return (
+    <div className="absolute inset-x-0 top-0 h-[480px] overflow-hidden border-b border-white/10">
+      <div
+        className="absolute inset-0"
+        style={{ background: posterColor(movie.movieId, movie.genres) }}
+      />
+      {src && !failed && (
+        <img
+          ref={imgRef}
+          src={src}
+          alt=""
+          aria-hidden
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          onError={() => setFailed(true)}
+          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
+            loaded ? "opacity-50" : "opacity-0"
+          }`}
+        />
+      )}
+      {/* Velos: oscurece abajo (para el contenido) y a la izquierda (para el texto) */}
+      <div className="absolute inset-0 bg-gradient-to-t from-night-950 via-night-950/70 to-night-950/20" />
+      <div className="absolute inset-0 bg-gradient-to-r from-night-950/85 via-night-950/30 to-transparent" />
+    </div>
+  );
+}
 
 export default function MoviePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -32,6 +87,11 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
   const [affinity, setAffinity] = useState<number | null>(null);
   const [notFound, setNotFound] = useState(false);
 
+  // Ficha enriquecida de Cinemeta (sinopsis, reparto, tráiler…)
+  const [meta, setMeta] = useState<MovieMeta | null>(null);
+  const [metaLoading, setMetaLoading] = useState(true);
+  const [trailerOpen, setTrailerOpen] = useState(false);
+
   const userRating = ratings[movieId];
   const inWatchlist = watchlist.includes(movieId);
 
@@ -39,6 +99,8 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
     let cancelled = false;
     setMovie(null);
     setSimilar(null);
+    setMeta(null);
+    setMetaLoading(true);
     api
       .movie(movieId)
       .then((m) => !cancelled && setMovie(m))
@@ -51,6 +113,28 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
       cancelled = true;
     };
   }, [movieId]);
+
+  // Metadatos enriquecidos (Cinemeta) en cuanto conocemos el imdbId
+  useEffect(() => {
+    if (!movie) return;
+    let cancelled = false;
+    const ctrl = new AbortController();
+    setMetaLoading(true);
+    fetchMovieMeta(movie.imdbId, ctrl.signal)
+      .then((m) => {
+        if (!cancelled) {
+          setMeta(m);
+          setMetaLoading(false);
+        }
+      })
+      .catch(() => {
+        /* aborto al cambiar de película: se ignora */
+      });
+    return () => {
+      cancelled = true;
+      ctrl.abort();
+    };
+  }, [movie]);
 
   // Afinidad estimada por el SVD (solo si hay historial y aún no la calificó)
   useEffect(() => {
@@ -99,13 +183,11 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
     );
   }
 
+  const trailerId = meta?.trailerYouTubeId ?? null;
+
   return (
     <div className="relative pb-8">
-      {/* Banda superior plana con el color del género */}
-      <div
-        className="absolute inset-x-0 top-0 h-72 border-b border-white/10 opacity-60"
-        style={{ background: posterColor(movie.movieId, movie.genres) }}
-      />
+      <DetailBackdrop movie={movie} />
 
       <div className="relative mx-auto max-w-[1600px] px-4 pt-24 sm:px-8">
         <Link
@@ -144,10 +226,16 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
 
             <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-white/60">
               {movie.year && <span className="font-semibold text-white/90">{movie.year}</span>}
-              {movie.avgRating != null && (
+              {meta?.imdbRating && (
                 <span className="flex items-center gap-1 rounded-full bg-gold-500/15 px-2.5 py-0.5 font-semibold text-gold-400 ring-1 ring-gold-500/30">
                   <Star className="h-3.5 w-3.5" fill="currentColor" />
-                  {movie.avgRating.toFixed(2)} / 5
+                  {meta.imdbRating} <span className="font-normal text-gold-400/70">/ 10 IMDb</span>
+                </span>
+              )}
+              {movie.avgRating != null && (
+                <span className="flex items-center gap-1 rounded-full bg-white/8 px-2.5 py-0.5 font-semibold text-white/85 ring-1 ring-white/15">
+                  <Star className="h-3.5 w-3.5 text-brand-300" fill="currentColor" />
+                  {movie.avgRating.toFixed(2)} <span className="font-normal text-white/50">comunidad</span>
                 </span>
               )}
               <span className="flex items-center gap-1">
@@ -176,6 +264,45 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
                   {genreLabel(g)}
                 </Link>
               ))}
+            </div>
+
+            {/* Sinopsis (Cinemeta) */}
+            <div className="mt-6 max-w-2xl">
+              {metaLoading ? (
+                <div className="space-y-2">
+                  <div className="skeleton h-3.5 w-full rounded" />
+                  <div className="skeleton h-3.5 w-11/12 rounded" />
+                  <div className="skeleton h-3.5 w-3/4 rounded" />
+                </div>
+              ) : meta?.description ? (
+                <p className="text-[15px] leading-relaxed text-white/75">{meta.description}</p>
+              ) : null}
+            </div>
+
+            {/* Acciones: tráiler + lista */}
+            <div className="mt-6 flex flex-wrap gap-3">
+              {trailerId && (
+                <button
+                  type="button"
+                  onClick={() => setTrailerOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-full bg-brand-500 px-6 py-2.5 text-sm font-bold text-white transition-all duration-200 hover:bg-brand-400 active:scale-95"
+                >
+                  <Play className="h-4 w-4" fill="currentColor" />
+                  Ver tráiler
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => toggleWatchlist(movie.movieId)}
+                className={`inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-semibold transition-all duration-200 active:scale-95 ${
+                  inWatchlist
+                    ? "bg-gold-500 text-night-950 hover:bg-gold-400"
+                    : "bg-white/10 text-white ring-1 ring-white/20 hover:bg-white/20"
+                }`}
+              >
+                <Bookmark className="h-4 w-4" fill={inWatchlist ? "currentColor" : "none"} />
+                {inWatchlist ? "En mi lista" : "Guardar en mi lista"}
+              </button>
             </div>
 
             {/* Afinidad estimada por el modelo */}
@@ -228,18 +355,8 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={() => toggleWatchlist(movie.movieId)}
-              className={`mt-4 inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-semibold transition-all duration-200 active:scale-95 ${
-                inWatchlist
-                  ? "bg-gold-500 text-night-950 hover:bg-gold-400"
-                  : "bg-white/10 text-white ring-1 ring-white/20 hover:bg-white/20"
-              }`}
-            >
-              <Bookmark className="h-4 w-4" fill={inWatchlist ? "currentColor" : "none"} />
-              {inWatchlist ? "En mi lista" : "Guardar en mi lista"}
-            </button>
+            {/* Ficha técnica, premios, reparto y equipo (Cinemeta) */}
+            <MovieExtras meta={meta} loading={metaLoading} />
           </motion.div>
         </div>
       </div>
@@ -256,6 +373,13 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
           />
         )}
       </div>
+
+      <TrailerModal
+        youTubeId={trailerId}
+        title={movie.title}
+        open={trailerOpen}
+        onClose={() => setTrailerOpen(false)}
+      />
     </div>
   );
 }

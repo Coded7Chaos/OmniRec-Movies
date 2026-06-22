@@ -1,5 +1,5 @@
 # OmniRec-Movies
-claude --resume 5b906396-4885-410b-a7e4-801b0b29a3f7
+
 Sistema inteligente de recomendación de películas sobre **MovieLens 25M** (GroupLens, noviembre 2019). El proyecto sigue el ciclo **CRISP-DM** completo (Business Understanding → Data Understanding → Data Preparation → Modeling → Evaluation → Deployment) y combina tres enfoques complementarios:
 
 1. **Estadístico / Machine Learning clásico** (Fases 1–5) — popularidad bayesiana, SVD y NMF sobre una muestra estratificada al 60 %, con KNN item-based conservado como benchmark al 10 %. Completado.

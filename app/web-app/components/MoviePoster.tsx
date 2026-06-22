@@ -4,7 +4,7 @@
    Los pósters vienen de un CDN externo ya optimizado (webp por tamaño);
    proxyearlos por el optimizador de Next solo añadiría latencia. */
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import PosterArt from "./PosterArt";
 import { posterImageUrl, type PosterSize } from "@/lib/poster";
 import type { Movie } from "@/lib/types";
@@ -26,12 +26,27 @@ export default function MoviePoster({
   const src = posterImageUrl(movie.imdbId, size);
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  // Imágenes ya cacheadas por el navegador pueden estar `complete` antes de que
+  // React enganche el onLoad, y entonces ese evento nunca se dispara dejando el
+  // póster en opacity-0. Lo detectamos al montar / al cambiar de src.
+  useEffect(() => {
+    setLoaded(false);
+    setFailed(false);
+    const img = imgRef.current;
+    if (img?.complete) {
+      if (img.naturalWidth > 0) setLoaded(true);
+      else setFailed(true);
+    }
+  }, [src]);
 
   return (
     <div className={`relative h-full w-full ${className}`}>
       <PosterArt movie={movie} />
       {src && !failed && (
         <img
+          ref={imgRef}
           src={src}
           alt={`Póster de ${movie.title}`}
           loading="lazy"
