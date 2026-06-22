@@ -13,7 +13,7 @@ up: ## Levanta backend + web (core)
 	$(COMPOSE) up -d --build
 
 up-all: ## Levanta todo (core + MLflow + Jupyter)
-	$(COMPOSE) --profile tools --profile notebooks up -d --build
+	$(COMPOSE) --profile notebooks up -d --build
 
 down: ## Detiene y elimina los contenedores
 	$(COMPOSE) down
@@ -30,8 +30,8 @@ pipeline: ## Corre el pipeline MLOps completo dentro del backend
 monitor: ## Genera un reporte de monitoreo
 	$(COMPOSE) exec backend python -m src.pipeline monitor
 
-mlflow: ## Levanta la UI de MLflow (http://localhost:5000)
-	$(COMPOSE) --profile tools up -d --build mlflow
+mlflow: ## Levanta la UI de MLflow (http://localhost:5001)
+	$(COMPOSE) up -d --build mlflow
 
 jupyter: ## Levanta Jupyter (http://localhost:8888)
 	$(COMPOSE) --profile notebooks up -d --build jupyter

@@ -92,10 +92,12 @@ docker compose up --build   # construye y levanta backend + frontend
   lo guarda en un volumen; los siguientes arranques son **instantáneos**. Seguí el
   progreso con `docker compose logs -f backend`.
 
+MLflow se levanta automáticamente con el core en
+<http://localhost:5001> (el 5000 lo ocupa AirPlay en macOS).
+
 ### Servicios opcionales (perfiles)
 
 ```bash
-docker compose --profile tools up -d mlflow        # UI de MLflow  -> http://localhost:5000
 docker compose --profile notebooks up -d jupyter   # Jupyter        -> http://localhost:8888
 ```
 
@@ -104,7 +106,7 @@ docker compose --profile notebooks up -d jupyter   # Jupyter        -> http://lo
 | Comando | Equivalente | Qué hace |
 |---|---|---|
 | `make up` | `docker compose up -d --build` | Backend + frontend |
-| `make up-all` | `docker compose --profile tools --profile notebooks up -d --build` | Todo |
+| `make up-all` | `docker compose --profile notebooks up -d --build` | Todo (incluye Jupyter) |
 | `make pipeline` | `docker compose exec backend python -m src.pipeline all` | Reentrena + reindexa + evalúa + versiona |
 | `make monitor` | `docker compose exec backend python -m src.pipeline monitor` | Reporte de monitoreo |
 | `make logs` | `docker compose logs -f` | Logs en vivo |

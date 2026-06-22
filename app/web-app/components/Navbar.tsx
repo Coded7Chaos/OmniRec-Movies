@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
+import CommunityBadge from "@/components/CommunityBadge";
 
 const NAV_LINKS = [
   { href: "/", label: "Inicio", icon: Home },
@@ -29,11 +30,8 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
-  const [query, setQuery] = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenu, setUserMenu] = useState(false);
-  const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -46,15 +44,6 @@ export default function Navbar() {
     setMobileOpen(false);
     setUserMenu(false);
   }, [pathname]);
-
-  const submitSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const q = query.trim();
-    if (!q) return;
-    router.push(`/buscar?q=${encodeURIComponent(q)}`);
-    setSearchOpen(false);
-    setQuery("");
-  };
 
   return (
     <header
@@ -105,50 +94,8 @@ export default function Navbar() {
         </div>
 
         <div className="ml-auto flex items-center gap-2">
-          {/* Búsqueda */}
-          <AnimatePresence mode="wait">
-            {searchOpen ? (
-              <motion.form
-                key="search"
-                initial={{ width: 40, opacity: 0 }}
-                animate={{ width: 240, opacity: 1 }}
-                exit={{ width: 40, opacity: 0 }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
-                onSubmit={submitSearch}
-                className="flex items-center gap-2 rounded-full bg-night-700/80 px-3 py-1.5 ring-1 ring-white/15"
-              >
-                <Search className="h-4 w-4 shrink-0 text-white/50" />
-                <input
-                  ref={searchRef}
-                  autoFocus
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onBlur={() => !query && setSearchOpen(false)}
-                  placeholder="Buscar películas…"
-                  className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/35"
-                />
-                <button
-                  type="button"
-                  aria-label="Cerrar búsqueda"
-                  onClick={() => { setSearchOpen(false); setQuery(""); }}
-                >
-                  <X className="h-4 w-4 text-white/50 hover:text-white" />
-                </button>
-              </motion.form>
-            ) : (
-              <motion.button
-                key="search-btn"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                type="button"
-                aria-label="Buscar"
-                onClick={() => setSearchOpen(true)}
-                className="rounded-full p-2 text-white/65 transition-colors hover:bg-white/10 hover:text-white"
-              >
-                <Search className="h-5 w-5" />
-              </motion.button>
-            )}
-          </AnimatePresence>
+          {/* Insignia de comunidad (reemplaza la búsqueda) */}
+          <CommunityBadge />
 
           {/* Sesión */}
           {user ? (

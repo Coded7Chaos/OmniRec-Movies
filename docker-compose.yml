@@ -1,13 +1,14 @@
 # =============================================================================
 # OmniRec-Movies — orquestación Docker
 #
-#   docker compose up --build                    # backend + web (core)
-#   docker compose --profile tools up -d mlflow  # + UI de MLflow
+#   docker compose up --build                         # backend + web + mlflow
 #   docker compose --profile notebooks up -d jupyter  # + Jupyter
 #
-# Primer arranque: el backend construye el índice semántico (~5 min en CPU) y lo
-# guarda en el volumen `models`; los siguientes arranques son instantáneos.
+# Primer arranque: el backend construye el índice semántico (~5 min en CPU) y
+# registra las métricas en MLflow; ambos se guardan en volúmenes, así que los
+# siguientes arranques son instantáneos.
 # Web: http://localhost:3000/buscar · API: http://localhost:8000/docs
+# MLflow: http://localhost:5001  (5000 lo ocupa AirPlay en macOS)
 # =============================================================================
 name: omnirec
 
@@ -53,9 +54,10 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  # ----------------------------------------------------- MLflow UI (perfil)
+  # ------------------------------------------------------------- MLflow UI
+  # Se levanta junto al core (sin perfil). El puerto del host es 5001 por
+  # defecto: en macOS el 5000 lo ocupa el Receptor de AirPlay (ControlCenter).
   mlflow:
-    profiles: ["tools"]
     build:
       context: .
       dockerfile: app/backend/Dockerfile
@@ -66,7 +68,7 @@ services:
     environment:
       ENSURE_ARTIFACTS: "0"
     ports:
-      - "${MLFLOW_PORT:-5000}:5000"
+      - "${MLFLOW_PORT:-5001}:5000"
     volumes:
       - mlruns:/app/mlruns
     restart: unless-stopped

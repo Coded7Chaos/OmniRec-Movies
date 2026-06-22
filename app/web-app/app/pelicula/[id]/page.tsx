@@ -50,7 +50,7 @@ function DetailBackdrop({ movie }: { movie: Movie }) {
   }, [src]);
 
   return (
-    <div className="absolute inset-x-0 top-0 h-[480px] overflow-hidden border-b border-white/10">
+    <div className="absolute inset-x-0 top-0 h-[480px] overflow-hidden">
       <div
         className="absolute inset-0"
         style={{ background: posterColor(movie.movieId, movie.genres) }}
