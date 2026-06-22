@@ -1,0 +1,17 @@
+# =============================================================================
+# Configuración de monitoreo y política de reentrenamiento — Fase 4
+# Consumido por src/monitor.py. Los umbrales se documentan en el informe.
+# =============================================================================
+
+# Umbrales de calidad / drift que disparan una alerta.
+thresholds:
+  ndcg10_drop_pct: 5.0       # caída relativa de NDCG@10 vs versión `current`
+  popularity_psi: 0.2        # PSI de popularidad por encima del cual hay drift
+  min_coverage: 0.60         # cobertura mínima del recomendador (ítems modelados)
+  data_freshness_days: 30    # antigüedad máxima tolerada del último rating
+
+# Política de actualización / reentrenamiento (disparadores).
+retrain:
+  new_ratings_trigger: 50000 # nuevos ratings acumulados que disparan retrain
+  schedule: monthly          # reentrenamiento programado de respaldo
+  guardrail: true            # solo promueve a `current` si las métricas no empeoran

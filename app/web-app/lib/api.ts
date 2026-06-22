@@ -6,6 +6,7 @@ import type {
   ProfileResponse,
   RatingEntry,
   RecommendationsResponse,
+  SemanticResponse,
   User,
 } from "./types";
 
@@ -157,4 +158,11 @@ export const api = {
   modelComparison: () =>
     request<{ models: Record<string, string | number>[] }>("/api/meta/models"),
   stats: () => request<Record<string, unknown>>("/api/meta/stats"),
+
+  // -------- búsqueda semántica / RAG (Fase 4)
+  semanticSearch: (q: string, k = 12, generate = false) => {
+    const params = new URLSearchParams({ q, k: String(k) });
+    if (generate) params.set("generate", "true");
+    return request<SemanticResponse>(`/api/search/semantic?${params.toString()}`);
+  },
 };

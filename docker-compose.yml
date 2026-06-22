@@ -1,0 +1,99 @@
+# =============================================================================
+# OmniRec-Movies — orquestación Docker
+#
+#   docker compose up --build                    # backend + web (core)
+#   docker compose --profile tools up -d mlflow  # + UI de MLflow
+#   docker compose --profile notebooks up -d jupyter  # + Jupyter
+#
+# Primer arranque: el backend construye el índice semántico (~5 min en CPU) y lo
+# guarda en el volumen `models`; los siguientes arranques son instantáneos.
+# Web: http://localhost:3000/buscar · API: http://localhost:8000/docs
+# =============================================================================
+name: omnirec
+
+services:
+  # ----------------------------------------------------------------- Backend
+  backend:
+    build:
+      context: .
+      dockerfile: app/backend/Dockerfile
+    image: omnirec-backend
+    environment:
+      ENSURE_ARTIFACTS: "1"                                   # construye artefactos si faltan
+      MLFLOW_TRACKING_URI: "sqlite:////app/mlruns/mlflow.db"
+      OMNIREC_DATABASE_URL: "sqlite:////app/appdata/omnirec.db"
+      OMNIREC_CORS_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000"
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"             # opcional (capa RAG generativa)
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - models:/app/models
+      - mlruns:/app/mlruns
+      - appdata:/app/appdata
+      - ./reports:/app/reports                               # figuras/monitoreo visibles en el host
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 30
+      start_period: 420s                                     # margen para construir el índice la 1ª vez
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------- Frontend
+  web:
+    build:
+      context: ./app/web-app
+      args:
+        NEXT_PUBLIC_API_URL: "${NEXT_PUBLIC_API_URL:-http://localhost:8000}"
+    image: omnirec-web
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ----------------------------------------------------- MLflow UI (perfil)
+  mlflow:
+    profiles: ["tools"]
+    build:
+      context: .
+      dockerfile: app/backend/Dockerfile
+    image: omnirec-backend
+    command: ["mlflow", "ui",
+              "--backend-store-uri", "sqlite:////app/mlruns/mlflow.db",
+              "--host", "0.0.0.0", "--port", "5000"]
+    environment:
+      ENSURE_ARTIFACTS: "0"
+    ports:
+      - "${MLFLOW_PORT:-5000}:5000"
+    volumes:
+      - mlruns:/app/mlruns
+    restart: unless-stopped
+
+  # --------------------------------------------------- Jupyter (perfil)
+  jupyter:
+    profiles: ["notebooks"]
+    build:
+      context: .
+      dockerfile: app/backend/Dockerfile
+    image: omnirec-backend
+    command: ["jupyter", "notebook", "--ip=0.0.0.0", "--port=8888",
+              "--no-browser", "--allow-root"]
+    environment:
+      ENSURE_ARTIFACTS: "0"
+      JUPYTER_TOKEN: ""                                       # sin token en local (dev)
+      MLFLOW_TRACKING_URI: "sqlite:////app/mlruns/mlflow.db"
+    ports:
+      - "${JUPYTER_PORT:-8888}:8888"
+    volumes:
+      - models:/app/models
+      - mlruns:/app/mlruns
+      - ./notebooks:/app/notebooks
+      - ./reports:/app/reports
+    restart: unless-stopped
+
+volumes:
+  models:      # artefactos: índice RAG, svd_model.pkl, registry
+  mlruns:      # mlflow.db + artefactos de tracking
+  appdata:     # base de datos de la app (usuarios/ratings)

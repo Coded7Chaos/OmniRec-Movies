@@ -1,10 +1,10 @@
 # OmniRec-Movies
-
+claude --resume 5b906396-4885-410b-a7e4-801b0b29a3f7
 Sistema inteligente de recomendación de películas sobre **MovieLens 25M** (GroupLens, noviembre 2019). El proyecto sigue el ciclo **CRISP-DM** completo (Business Understanding → Data Understanding → Data Preparation → Modeling → Evaluation → Deployment) y combina tres enfoques complementarios:
 
 1. **Estadístico / Machine Learning clásico** (Fases 1–5) — popularidad bayesiana, SVD y NMF sobre una muestra estratificada al 60 %, con KNN item-based conservado como benchmark al 10 %. Completado.
 2. **Aprendizaje profundo con embeddings** (Fase 6, parte 1) — NCF / Two-Tower. Pendiente.
-3. **Recuperación semántica / RAG** sobre tags y genome-scores (Fase 6, parte 2). Pendiente.
+3. **Recuperación semántica / RAG + MLOps** sobre tags y genome-scores (Fase 4 de la guía integradora). **Completado** — ver `src/`, `config/`, el notebook 05 y `reports/INFORME_FASE4_MLOPS_RAG.md`. Búsqueda semántica multilingüe (Sentence-Transformers + FAISS) con re-ranking y evidencia, capa RAG generativa, pipeline reproducible, tracking (MLflow), versionado (SHA256) y monitoreo.
 
 El deployment (Fase 6) cuenta con una plataforma web completa en `app/`: un **backend FastAPI** (`app/backend/`) que sirve los modelos entrenados (baseline bayesiano, SVD con *folding-in* y comunidades KMeans) detrás de una API REST con autenticación JWT, y una **aplicación Next.js** (`app/web-app/`) con estética de cine comercial — **OmniCine** — donde usuarios reales se registran, exploran la cartelera, califican películas y reciben recomendaciones personalizadas en tiempo real. Los invitados sin cuenta también reciben personalización: su feedback se guarda en el navegador y se migra al servidor al crear la cuenta.
 
@@ -44,7 +44,7 @@ OmniRec-Movies/
 │   ├── 02_Data_Sampling_and_Cleaning.ipynb       # Fase 3
 │   ├── 03_ML_Baseline_AutoML.ipynb               # Fases 4 + 5
 │   ├── 04_DeepLearning_Embeddings.ipynb          # Fase 6 (DL)  — placeholder
-│   └── 05_Semantic_Search_RAG.ipynb              # Fase 6 (RAG) — placeholder
+│   └── 05_Semantic_Search_RAG.ipynb              # Fase 4 (MLOps + RAG) ✅
 ├── models/                               # Artefactos *.pkl del notebook 03
 │   ├── baseline_scores.pkl
 │   ├── knn_model.pkl
@@ -62,15 +62,66 @@ OmniRec-Movies/
 │   │   ├── routers/                      # auth, movies, recommendations, ratings, profile, meta
 │   │   └── scripts/train_models.py       # Regenera models/svd_model.pkl desde los parquets
 │   └── web-app/                          # Frontend Next.js 16 — "OmniCine" (cine comercial)
-├── src/                                  # Scripts reutilizables (pendiente)
-├── config/                               # Parámetros de experimentos (pendiente)
+├── src/                                  # Pipeline MLOps + RAG (Fase 4) ✅
+│   ├── pipeline.py                       # Orquestador: prepare→train→index→evaluate→register
+│   ├── descriptors.py · embeddings.py · index.py · search.py · generate.py  # RAG
+│   └── train.py · evaluate.py · registry.py · tracking.py · monitor.py      # MLOps
+├── config/                               # pipeline.yaml · rag.yaml · monitoring.yaml ✅
 ├── requirements.txt
 └── README.md                             # (este archivo)
 ```
 
 ---
 
-## 2. Requisitos previos
+## 🐳 Ejecución con Docker (la forma más fácil)
+
+La vía recomendada para correr el proyecto en **cualquier computadora** sin
+instalar Python, Node ni compiladores. Docker (Linux) además evita el problema de
+`torch` en Windows. Solo necesitás **Docker Desktop** (o Docker Engine + Compose v2).
+
+```bash
+git clone https://github.com/Coded7Chaos/OmniRec-Movies
+cd OmniRec-Movies
+cp .env.example .env        # opcional: solo si querés la capa RAG generativa (clave Claude)
+docker compose up --build   # construye y levanta backend + frontend
+```
+
+- Abrí **<http://localhost:3000/buscar>** (búsqueda semántica) y **<http://localhost:3000>** (OmniCine).
+- API y documentación interactiva: **<http://localhost:8000/docs>**.
+- **Primer arranque:** el backend construye el índice semántico (~5 min en CPU) y
+  lo guarda en un volumen; los siguientes arranques son **instantáneos**. Seguí el
+  progreso con `docker compose logs -f backend`.
+
+### Servicios opcionales (perfiles)
+
+```bash
+docker compose --profile tools up -d mlflow        # UI de MLflow  -> http://localhost:5000
+docker compose --profile notebooks up -d jupyter   # Jupyter        -> http://localhost:8888
+```
+
+### Atajos (`make`) y operación
+
+| Comando | Equivalente | Qué hace |
+|---|---|---|
+| `make up` | `docker compose up -d --build` | Backend + frontend |
+| `make up-all` | `docker compose --profile tools --profile notebooks up -d --build` | Todo |
+| `make pipeline` | `docker compose exec backend python -m src.pipeline all` | Reentrena + reindexa + evalúa + versiona |
+| `make monitor` | `docker compose exec backend python -m src.pipeline monitor` | Reporte de monitoreo |
+| `make logs` | `docker compose logs -f` | Logs en vivo |
+| `make down` | `docker compose down` | Detener |
+| `make clean` | `docker compose down -v` | Detener y **borrar volúmenes** (artefactos, BD) |
+
+> Sin `make` (Windows), usá directamente los comandos `docker compose ...` de la columna central.
+
+### Notas
+- **Puertos / clave LLM:** configurables en `.env` (`BACKEND_PORT`, `WEB_PORT`, `ANTHROPIC_API_KEY`, …). Sin `ANTHROPIC_API_KEY`, la respuesta IA usa el fallback por plantilla.
+- **`NEXT_PUBLIC_API_URL`** se hornea al construir el frontend; si lo cambiás, reconstruí: `docker compose build web`.
+- **Persistencia:** los artefactos viven en volúmenes Docker (`models`, `mlruns`, `appdata`). `make clean` los elimina para empezar de cero.
+- **Todo funcional al clonar:** en el primer arranque el backend genera por sí solo el índice semántico, el SVD y el baseline de popularidad, así que **la búsqueda y el recomendador funcionan sin pasos extra**. Lo único opcional es `data/ml-25m/links.csv` (IDs de IMDb/TMDb para pósters): si no está, las imágenes usan el arte procedural de respaldo.
+
+---
+
+## 2. Requisitos previos (ejecución nativa, sin Docker)
 
 - **Python 3.10 – 3.12** (verificado en 3.12.13).
 - **Compilador C/C++** para `scikit-surprise`:

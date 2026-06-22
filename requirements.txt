@@ -35,3 +35,17 @@ sqlalchemy>=2.0
 pyjwt>=2.9
 bcrypt>=4.2
 pydantic[email]>=2.9
+
+# =============================================================================
+# Fase 4 — MLOps + RAG / recuperación semántica (src/ + pipeline)
+# =============================================================================
+# Encoder de embeddings (preentrenado, inferencia, CPU), índice vectorial,
+# tracking de experimentos, configuración y capa generativa.
+# Nota: torch se fija a 2.4.* porque wheels de torch más nuevos fallan al cargar
+# en algunos Windows (WinError 1114 en c10.dll); 2.4 es estable con numpy 1.26.
+torch==2.4.*
+sentence-transformers>=3.0
+faiss-cpu>=1.8
+mlflow>=2.16
+pyyaml>=6.0
+anthropic>=0.40        # capa RAG generativa (opcional; fallback por plantilla)

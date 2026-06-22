@@ -1,0 +1,41 @@
+# =============================================================================
+# Configuración del componente RAG / recuperación semántica — Fase 4
+# Consumido por src/descriptors.py, src/embeddings.py, src/index.py,
+# src/search.py, src/generate.py y el backend (app/backend/ml/semantic.py).
+# =============================================================================
+
+# Encoder de embeddings: modelo preentrenado en modo inferencia (Política §4).
+# Multilingüe: permite consultas en español sobre descriptores en inglés
+# (títulos + tags genome), que es el idioma de OmniCine.
+encoder:
+  model_name: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+  normalize: true            # L2 -> producto interno = coseno
+  batch_size: 256
+  device: cpu                # sin GPU dedicada (Política §4.1)
+
+# Descriptor textual por película = título + géneros + top tags genome.
+descriptors:
+  top_tags: 12               # nº de tags genome más relevantes por película
+  min_relevance: 0.5         # umbral de relevancia para incluir un tag
+
+# Índice vectorial.
+index:
+  backend: faiss             # faiss | numpy (fallback equivalente)
+  metric: ip                 # inner product sobre vectores normalizados (coseno)
+
+# Recuperación.
+search:
+  default_k: 10
+  max_k: 50
+  pool: 300                  # candidatos por coseno antes del re-ranking
+  rerank_alpha: 0.25         # peso del prior de popularidad (0 = puro semántico)
+  min_votes: 0               # 0 = no filtra long tail (se reporta cobertura)
+
+# Capa generativa (retrieve -> augment -> generate).
+generation:
+  enabled: true
+  provider: anthropic
+  model: claude-haiku-4-5    # modelo en inferencia; sin hardware especializado
+  max_tokens: 700
+  temperature: 0.3
+  fallback: template         # sin ANTHROPIC_API_KEY -> respuesta determinista

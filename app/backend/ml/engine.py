@@ -66,9 +66,14 @@ class RecommenderEngine:
         stats = pd.read_parquet(DATA_INT_DIR / "item_clusters.parquet")[
             ["movieId", "cluster", "n_ratings", "rating_mean"]
         ]
-        links = pd.read_csv(DATA_RAW_DIR / "links.csv")
-
-        df = movies.merge(stats, on="movieId", how="left").merge(links, on="movieId", how="left")
+        df = movies.merge(stats, on="movieId", how="left")
+        # links.csv (IDs IMDb/TMDb para pósters) es parte del dataset crudo y
+        # puede no estar (p. ej. en Docker). Si falta, las imágenes caen al arte
+        # procedural; el recomendador funciona igual.
+        links_path = DATA_RAW_DIR / "links.csv"
+        if links_path.exists():
+            links = pd.read_csv(links_path)
+            df = df.merge(links, on="movieId", how="left")
         cleaned = df["title"].map(_clean_title)
         df["clean_title"] = [c[0] for c in cleaned]
         df["year"] = [c[1] for c in cleaned]

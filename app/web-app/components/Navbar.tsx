@@ -20,6 +20,7 @@ import { useStore } from "@/lib/store";
 const NAV_LINKS = [
   { href: "/", label: "Inicio", icon: Home },
   { href: "/cartelera", label: "Cartelera", icon: Film },
+  { href: "/buscar", label: "Buscar", icon: Search },
   { href: "/para-ti", label: "Para ti", icon: Sparkles },
 ];
 
@@ -50,7 +51,7 @@ export default function Navbar() {
     e.preventDefault();
     const q = query.trim();
     if (!q) return;
-    router.push(`/cartelera?q=${encodeURIComponent(q)}`);
+    router.push(`/buscar?q=${encodeURIComponent(q)}`);
     setSearchOpen(false);
     setQuery("");
   };

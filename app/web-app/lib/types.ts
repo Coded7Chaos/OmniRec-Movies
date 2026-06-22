@@ -80,3 +80,28 @@ export interface RatingEntry {
   movieId: number;
   rating: number;
 }
+
+// -------- Búsqueda semántica / RAG (Fase 4 — MLOps + RAG)
+export interface SemanticResult {
+  movieId: number;
+  title: string;
+  year: number | null;
+  genres: string[];
+  similarity: number;
+  score: number;
+  numRatings: number;
+  evidence: string[];
+  descriptor: string;
+}
+
+export interface SemanticResponse {
+  query: string;
+  k: number;
+  encoder: string;
+  rerank_alpha: number;
+  results: SemanticResult[];
+  // presentes solo cuando se pide generate=true
+  answer?: string;
+  mode?: "llm" | "template";
+  model?: string | null;
+}

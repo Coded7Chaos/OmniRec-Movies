@@ -1,0 +1,49 @@
+# =============================================================================
+# Configuración del pipeline reproducible — Fase 4 (MLOps + RAG)
+# Grupo 3 · OmniRec-Movies · MovieLens 25M
+# Consumido por src/pipeline.py y los módulos de src/.
+# =============================================================================
+
+seed: 42
+
+paths:
+  data_intermediate: data/intermediate
+  data_raw: data/ml-25m
+  models: models
+  registry: models/registry
+  rag_index: models/rag_index
+  reports: reports
+  monitoring: reports/monitoring
+  figures: reports/figures
+  mlruns: mlruns
+
+data:
+  movies: movies_prepared_60pct.parquet
+  genome_scores: genome_scores_prepared_60pct.parquet
+  genome_tags: genome_tags.parquet
+  # Se usa el primer parquet de ratings que exista (el 60% no se versiona por peso).
+  ratings_candidates:
+    - ratings_prepared_60pct.parquet
+    - ratings_knn_10pct.parquet
+    - ratings_sample_5pct.parquet
+
+# Hiperparámetros del SVD ganador del notebook 03 (reproducibles).
+svd:
+  n_factors: 50
+  n_epochs: 20
+  lr_all: 0.005
+  reg_all: 0.02
+  k_user_clusters: 6
+  k_item_clusters: 6
+
+# Protocolo de evaluación (mismo criterio del notebook 03: split temporal).
+evaluation:
+  split: leave_last_one_out
+  top_k: 10
+  min_user_ratings: 5        # usuarios con al menos N ratings entran al test
+  max_eval_users: 4000       # submuestra de usuarios para acotar el costo
+  candidate_pool: 2000       # pool de candidatos populares para ranking
+
+mlflow:
+  experiment: omnirec-fase4-mlops-rag
+  tracking_uri: ""           # vacío -> file store local en paths.mlruns

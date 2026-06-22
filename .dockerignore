@@ -1,0 +1,53 @@
+# Contexto de build del backend (raíz del repo). Mantener liviano.
+
+# Control de versiones / entornos
+.git
+.gitignore
+.venv
+venv
+env
+
+# Frontend (tiene su propio build/contexto)
+app/web-app
+
+# Artefactos generados (van en volúmenes, se regeneran)
+models
+mlruns
+mlartifacts
+mlflow.db
+*.db
+
+# Python
+__pycache__
+**/__pycache__
+*.py[cod]
+.ipynb_checkpoints
+.pytest_cache
+.mypy_cache
+.ruff_cache
+
+# Documentación pesada / no necesaria en la imagen
+reports
+*.pptx
+*.pdf
+
+# Parquets de data/intermediate NO usados por el pipeline (reducen ~165 MB)
+# ratings_prepared_60pct (15M filas) NO está en git y agota la memoria del
+# contenedor al entrenar; la imagen usa ratings_knn_10pct (igual que un clon limpio).
+data/intermediate/ratings_prepared_60pct.parquet
+data/intermediate/genome_scores_knn_10pct.parquet
+data/intermediate/genome_scores_sample.parquet
+data/intermediate/ratings_sample_5pct.parquet
+data/intermediate/movies_sample.parquet
+data/intermediate/movies_knn_10pct.parquet
+data/intermediate/descriptors.parquet
+data/*.zip
+data/*.zip.md5
+
+# Docker / OS
+Dockerfile
+**/Dockerfile
+.dockerignore
+.DS_Store
+Thumbs.db
+*.log

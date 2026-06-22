@@ -1,5 +1,5 @@
 # =============================================================================
-# Datos y modelos pesados (regenerables con los notebooks / train_models.py)
+# Datos: dataset crudo y artefactos pesados regenerables
 # =============================================================================
 data/ml-25m/*
 !data/ml-25m/README.txt
@@ -7,53 +7,102 @@ data/ml-25m/*
 data/*.zip
 data/*.zip.md5
 
+# NOTA IMPORTANTE: los parquets de `data/intermediate/` SÍ se versionan a
+# propósito (los notebooks y, sobre todo, el arranque en Docker dependen de
+# ellos: movies/genome_scores/genome_tags/item_clusters/ratings_knn_10pct).
+# NO agregar `data/intermediate/*` aquí o se romperá `docker compose up`.
+# Solo se ignoran los generados/demasiado grandes que NO van al repo:
+# - descriptors.parquet: lo genera el pipeline (etapa prepare)
+# - ratings_prepared_60pct.parquet: 15M filas, regenerable con el notebook 02
+data/intermediate/descriptors.parquet
+data/intermediate/ratings_prepared_60pct.parquet
+
+# =============================================================================
+# Modelos y artefactos de inferencia (regenerables con el pipeline / notebooks)
+# =============================================================================
 models/*
 !models/README.md
 
 # =============================================================================
-# Python
+# MLOps — tracking y monitoreo (regenerables)
+# =============================================================================
+mlflow.db
+mlruns/
+mlartifacts/
+# Reportes de monitoreo con timestamp (se regeneran con `src.pipeline monitor`)
+reports/monitoring/
+
+# =============================================================================
+# Entornos y dependencias
 # =============================================================================
 venv/
 .venv/
 env/
-__pycache__/
-*.py[cod]
-*.egg-info/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.ipynb_checkpoints/
-
-# =============================================================================
-# Backend FastAPI (app/backend/)
-# =============================================================================
-# Base de datos local de usuarios/ratings (se crea al arrancar)
-app/backend/omnirec.db
-app/backend/*.db
-# Secretos
-.env
-.env.*
-!.env.example
-
-# =============================================================================
-# Frontend Next.js (app/web-app/ tiene su propio .gitignore; esto es respaldo)
-# =============================================================================
+.python-version
 node_modules/
 .next/
 out/
 *.tsbuildinfo
+
+# =============================================================================
+# Python — cachés y builds
+# =============================================================================
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+build/
+dist/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+.ipynb_checkpoints/
+
+# =============================================================================
+# Secretos y variables de entorno (NUNCA subir credenciales)
+# =============================================================================
+.env
+.env.*
+!.env.example
+!app/backend/.env.example
+
+# =============================================================================
+# Bases de datos locales (sqlite de la app, se crean al ejecutar)
+# =============================================================================
+*.db
+*.sqlite
+*.sqlite3
+app/backend/omnirec.db
+
+# =============================================================================
+# Cachés varias (HuggingFace/torch/etc. si se materializan en el repo)
+# =============================================================================
+.cache/
+.huggingface/
+
+# =============================================================================
+# Logs, temporales y respaldos
+# =============================================================================
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # =============================================================================
 # Sistema operativo / editores
 # =============================================================================
 .DS_Store
 Thumbs.db
+desktop.ini
 .vscode/
 .idea/
-
-# =============================================================================
-# Logs y temporales
-# =============================================================================
-*.log
-*.tmp
