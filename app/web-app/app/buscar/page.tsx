@@ -4,8 +4,11 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { Loader2, Search, Sparkles, Wand2, X } from "lucide-react";
+// La respuesta IA se solicita siempre (generate=true). El backend solo la genera
+// con una API key de Claude válida; si no, devuelve mode="template" y la ocultamos.
 import { api } from "@/lib/api";
 import SearchResultCard from "@/components/SearchResultCard";
+import AssistantAnswer from "@/components/AssistantAnswer";
 import type { SemanticResponse } from "@/lib/types";
 
 const EXAMPLES = [
@@ -25,19 +28,19 @@ function SearchContent() {
   const [input, setInput] = useState(query);
   const [data, setData] = useState<SemanticResponse | null>(null);
   const [loading, setLoading] = useState(false);
-  const [generate, setGenerate] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => setInput(query), [query]);
 
   const runSearch = useCallback(
-    async (q: string, withAnswer: boolean) => {
+    async (q: string) => {
       if (!q.trim()) return;
       setLoading(true);
       setError(null);
       try {
-        const res = await api.semanticSearch(q.trim(), 12, withAnswer);
+        // Siempre pedimos la respuesta IA; el backend la genera solo si hay key.
+        const res = await api.semanticSearch(q.trim(), 12, true);
         setData(res);
       } catch {
         setError("No se pudo completar la búsqueda. ¿Está el backend en marcha?");
@@ -51,7 +54,7 @@ function SearchContent() {
 
   // Dispara la búsqueda cuando cambia la query de la URL.
   useEffect(() => {
-    if (query) runSearch(query, generate);
+    if (query) runSearch(query);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
@@ -59,7 +62,7 @@ function SearchContent() {
     const trimmed = q.trim();
     if (!trimmed) return;
     router.replace(`/buscar?q=${encodeURIComponent(trimmed)}`, { scroll: false });
-    runSearch(trimmed, generate);
+    runSearch(trimmed);
   };
 
   return (
@@ -118,19 +121,6 @@ function SearchContent() {
         >
           <Search className="h-4 w-4" /> Buscar
         </button>
-        <button
-          type="button"
-          onClick={() => setGenerate((v) => !v)}
-          aria-pressed={generate}
-          className={`inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-medium ring-1 transition-all ${
-            generate
-              ? "bg-gold-500/15 text-gold-300 ring-gold-500/40"
-              : "text-white/55 ring-white/15 hover:text-white hover:ring-white/35"
-          }`}
-          title="Genera una recomendación redactada citando los resultados"
-        >
-          <Wand2 className="h-4 w-4" /> Respuesta IA
-        </button>
       </form>
 
       {/* Ejemplos */}
@@ -147,24 +137,29 @@ function SearchContent() {
         ))}
       </div>
 
-      {/* Respuesta generada (RAG) */}
+      {/* Respuesta generada (RAG) — solo se muestra cuando proviene del LLM de
+          Claude (mode="llm"); sin API key válida el backend cae a plantilla y la
+          ocultamos para que la función "no haga nada". */}
       <AnimatePresence>
-        {data?.answer && (
+        {data?.answer && data.mode === "llm" && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-500/10 to-gold-500/5 p-5 ring-1 ring-brand-500/25"
+            className="mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-500/10 to-gold-500/5 ring-1 ring-brand-500/25"
           >
-            <p className="mb-2 flex items-center gap-2 text-xs font-semibold tracking-wider text-gold-400 uppercase">
-              <Wand2 className="h-4 w-4" /> Recomendación del asistente
-              <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-normal text-white/50">
-                {data.mode === "llm" ? `LLM · ${data.model}` : "plantilla"}
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-white/[0.03] px-5 py-3">
+              <p className="flex items-center gap-2 text-xs font-semibold tracking-wider text-gold-400 uppercase">
+                <Wand2 className="h-4 w-4" /> Recomendación del asistente
+              </p>
+              <span className="flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-0.5 text-[10px] font-medium text-white/55">
+                <span className="h-1.5 w-1.5 rounded-full bg-gold-400" />
+                {data.model}
               </span>
-            </p>
-            <p className="whitespace-pre-line text-sm leading-relaxed text-white/85">
-              {data.answer}
-            </p>
+            </div>
+            <div className="px-5 py-4">
+              <AssistantAnswer markdown={data.answer} />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
