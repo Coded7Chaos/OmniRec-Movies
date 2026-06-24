@@ -84,6 +84,7 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
 
   const [movie, setMovie] = useState<Movie | null>(null);
   const [similar, setSimilar] = useState<Movie[] | null>(null);
+  const [similarMethod, setSimilarMethod] = useState<"dl" | "svd">("dl");
   const [affinity, setAffinity] = useState<number | null>(null);
   const [notFound, setNotFound] = useState(false);
 
@@ -107,7 +108,11 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
       .catch(() => !cancelled && setNotFound(true));
     api
       .similar(movieId, 14)
-      .then((s) => !cancelled && setSimilar(s.results))
+      .then((s) => {
+        if (cancelled) return;
+        setSimilar(s.results);
+        setSimilarMethod(s.method);
+      })
       .catch(() => !cancelled && setSimilar([]));
     return () => {
       cancelled = true;
@@ -368,7 +373,11 @@ export default function MoviePage({ params }: { params: Promise<{ id: string }> 
         ) : (
           <MovieRow
             title="Si te gustó esta, mira…"
-            subtitle="Vecinas en el espacio latente del modelo SVD"
+            subtitle={
+              similarMethod === "dl"
+                ? "Vecinas en el espacio de embeddings del modelo Deep Learning (red neuronal)"
+                : "Vecinas en el espacio latente del modelo SVD"
+            }
             movies={similar}
           />
         )}

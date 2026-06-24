@@ -44,12 +44,37 @@ def _rating_drift() -> dict:
     return {"rating_psi": round(_psi(old, new), 4), "data_freshness_days": int(days)}
 
 
+def _dl_status() -> dict:
+    """Estado del modelo Deep Learning: Test RMSE actual (sidecar dl_metrics.json)
+    vs la versión `current` registrada de ``dl_embeddings``."""
+    sidecar = config.path("models") / "dl_metrics.json"
+    if not sidecar.exists():
+        return {"available": False}
+    meta = json.loads(sidecar.read_text(encoding="utf-8"))
+    served = (meta.get("models", {}) or {}).get(meta.get("served_model", "mf_bias"), {})
+    rmse_now = served.get("test_rmse")
+    prev = registry.current_manifest("dl_embeddings")
+    rmse_rise = None
+    if prev and rmse_now is not None and prev.get("metrics", {}).get("test_rmse"):
+        base = prev["metrics"]["test_rmse"]
+        rmse_rise = round(100.0 * (rmse_now - base) / base, 2)
+    return {
+        "available": True,
+        "served_model": meta.get("served_model"),
+        "test_rmse": rmse_now,
+        "test_mae": served.get("test_mae"),
+        "current_version": prev["version"] if prev else None,
+        "rmse_rise_pct_vs_current": rmse_rise,
+    }
+
+
 def run(metrics: dict | None = None) -> dict:
     cfg = config.monitoring_cfg()
     th = cfg["thresholds"]
 
     quality = metrics or evaluate.evaluate_all()
     drift = _rating_drift()
+    dl = _dl_status()
 
     rec = quality["recommender"]
     ret = quality["retrieval"]
@@ -77,11 +102,18 @@ def run(metrics: dict | None = None) -> dict:
             f"Datos con {drift['data_freshness_days']} días de antigüedad "
             f"(> {th['data_freshness_days']})"
         )
+    dl_rise = dl.get("rmse_rise_pct_vs_current")
+    if dl_rise is not None and dl_rise > th.get("dl_rmse_rise_pct", 5.0):
+        alerts.append(
+            f"Test RMSE del modelo DL subió {dl_rise}% (> {th['dl_rmse_rise_pct']}%) "
+            f"vs {dl.get('current_version')}"
+        )
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "recommender": rec,
         "retrieval": {k: v for k, v in ret.items() if k != "per_query"},
+        "deep_learning": dl,
         "drift": drift,
         "ndcg_drop_pct_vs_current": ndcg_drop,
         "current_svd_version": prev["version"] if prev else None,

@@ -35,9 +35,18 @@ def movie_detail(movie_id: int):
 
 
 @router.get("/{movie_id}/similar")
-def similar_movies(movie_id: int, limit: int = Query(12, ge=1, le=30)):
+def similar_movies(
+    movie_id: int,
+    limit: int = Query(12, ge=1, le=30),
+    method: str = Query("dl", pattern="^(dl|svd)$"),
+):
     engine = get_engine()
     if engine.movie_payload(movie_id) is None:
         raise HTTPException(404, "Película no encontrada")
-    ids = engine.similar(movie_id, n=limit)
-    return {"movieId": movie_id, "results": engine.movies_payload(ids)}
+    if method == "dl":
+        ids = engine.similar_dl(movie_id, n=limit)
+        used = "dl" if engine.serves_dl(movie_id) else "svd"
+    else:
+        ids = engine.similar(movie_id, n=limit)
+        used = "svd"
+    return {"movieId": movie_id, "method": used, "results": engine.movies_payload(ids)}

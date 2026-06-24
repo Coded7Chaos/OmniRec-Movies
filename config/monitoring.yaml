@@ -6,6 +6,7 @@
 # Umbrales de calidad / drift que disparan una alerta.
 thresholds:
   ndcg10_drop_pct: 5.0       # caída relativa de NDCG@10 vs versión `current`
+  dl_rmse_rise_pct: 5.0      # subida relativa del Test RMSE del modelo DL vs `current`
   popularity_psi: 0.2        # PSI de popularidad por encima del cual hay drift
   min_coverage: 0.60         # cobertura mínima del recomendador (ítems modelados)
   data_freshness_days: 30    # antigüedad máxima tolerada del último rating

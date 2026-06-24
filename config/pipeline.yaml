@@ -36,6 +36,21 @@ svd:
   k_user_clusters: 6
   k_item_clusters: 6
 
+# Hiperparámetros del modelo Deep Learning (notebook 04, reproducibles).
+# MF+Bias es el modelo de servicio para "similares"; NeuMF es la comparación.
+deep_learning:
+  embedding_dim: 32
+  batch_size: 2048
+  epochs: 25
+  patience: 3                 # early stopping sobre Val RMSE
+  lr: 0.001
+  weight_decay: 0.00001
+  train_neumf: true           # entrena también NeuMF (comparación)
+  rating_min: 0.5
+  rating_max: 5.0
+  test_size: 0.30             # 70/15/15 -> 0.30 a temp, mitad val/mitad test
+  force_cpu: false            # true -> ignora cuda/mps (reproducibilidad estricta)
+
 # Protocolo de evaluación (mismo criterio del notebook 03: split temporal).
 evaluation:
   split: leave_last_one_out

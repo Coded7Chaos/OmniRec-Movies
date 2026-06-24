@@ -4,6 +4,10 @@ Artefactos consumidos:
 - ``models/baseline_scores.pkl``   — popularidad bayesiana (notebook 03, baseline).
 - ``models/svd_model.pkl``         — factores latentes SVD + clústeres KMeans
   (regenerable con ``app/backend/scripts/train_models.py``).
+- ``models/dl_item_embeddings.pkl`` — embeddings de ítem del modelo Deep Learning
+  (notebook 04, MF+Bias). OPCIONAL: alimenta "similares" con la red neuronal;
+  si falta, ``similar_dl`` cae al espacio del SVD. Regenerable con
+  ``app/backend/scripts/export_dl_embeddings.py``.
 - ``data/intermediate/movies_prepared_60pct.parquet`` — catálogo limpio (notebook 02).
 - ``data/intermediate/item_clusters.parquet``         — popularidad y rating medio por película.
 - ``data/ml-25m/links.csv``        — ids externos (IMDb/TMDb).
@@ -58,6 +62,7 @@ class RecommenderEngine:
         self._load_catalog()
         self._load_baseline()
         self._load_svd()
+        self._load_dl_embeddings()
         self._build_indexes()
 
     # ------------------------------------------------------------- carga
@@ -115,6 +120,37 @@ class RecommenderEngine:
         norms = np.linalg.norm(self.qi, axis=1, keepdims=True)
         self.qi_normed = self.qi / np.maximum(norms, 1e-9)
         self.iid_to_inner = {int(mid): i for i, mid in enumerate(self.item_raw_ids)}
+
+    def _load_dl_embeddings(self) -> None:
+        """Embeddings de ítem del modelo Deep Learning (notebook 04, MF+Bias).
+
+        Artefacto OPCIONAL: ``models/dl_item_embeddings.pkl`` (regenerable con
+        ``app/backend/scripts/export_dl_embeddings.py``). Si falta, ``similar_dl``
+        cae al espacio latente del SVD sin romper nada.
+        """
+        # Defaults seguros para que los atributos existan aunque no haya artefacto.
+        self.dl_available = False
+        self.dl_meta: dict | None = None
+        self.dl_iid_to_inner: dict[int, int] = {}
+
+        path = MODELS_DIR / "dl_item_embeddings.pkl"
+        if not path.exists():
+            return
+        with open(path, "rb") as f:
+            art = pickle.load(f)
+
+        emb = np.asarray(art["embeddings"], dtype=np.float32)
+        norms = np.linalg.norm(emb, axis=1, keepdims=True)
+        self.dl_emb_normed = emb / np.maximum(norms, 1e-9)
+        self.dl_item_ids = np.asarray(art["item_ids"])
+        self.dl_iid_to_inner = {int(m): i for i, m in enumerate(self.dl_item_ids)}
+        self.dl_meta = {
+            "arch": art.get("arch", "MFBias"),
+            "dim": int(emb.shape[1]),
+            "items": int(emb.shape[0]),
+            "source": art.get("source"),
+        }
+        self.dl_available = True
 
     def _build_indexes(self) -> None:
         known = self.movies.index.intersection(pd.Index(self.item_raw_ids))
@@ -300,6 +336,33 @@ class RecommenderEngine:
                 break
         return tuple(out)
 
+    @lru_cache(maxsize=4096)
+    def similar_dl(self, movie_id: int, n: int = 12) -> tuple[int, ...]:
+        """Vecinos por coseno en el espacio de *embeddings* del modelo Deep
+        Learning (MF+Bias, notebook 04). Si el modelo DL no está disponible o la
+        película no fue modelada, cae transparentemente al espacio del SVD."""
+        inner = self.dl_iid_to_inner.get(movie_id) if self.dl_available else None
+        if inner is None:
+            return self.similar(movie_id, n=n)
+
+        sims = self.dl_emb_normed @ self.dl_emb_normed[inner]
+        order = np.argsort(-sims)
+        out: list[int] = []
+        for i in order:
+            mid = int(self.dl_item_ids[i])
+            if mid == movie_id or mid not in self.movies.index:
+                continue
+            if self.movies.at[mid, "n_ratings"] < MIN_VOTES_CANDIDATE:
+                continue
+            out.append(mid)
+            if len(out) >= n:
+                break
+        return tuple(out)
+
+    def serves_dl(self, movie_id: int) -> bool:
+        """¿Se sirvieron similares con el modelo DL para esta película?"""
+        return self.dl_available and movie_id in self.dl_iid_to_inner
+
     # ----------------------------------------------------------- personas
     def persona_for(self, user_ratings: dict[int, float]) -> dict | None:
         """Asigna comunidad: folding-in + centroide euclidiano más cercano."""
@@ -324,6 +387,7 @@ class RecommenderEngine:
             "modeledMovies": int(len(self.item_raw_ids)),
             "genres": len(self.genres),
             "model": self.svd_meta,
+            "dlEmbeddings": self.dl_meta,
         }
 
 

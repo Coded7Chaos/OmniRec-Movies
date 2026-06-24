@@ -80,8 +80,10 @@ export const api = {
   },
   genres: () => request<{ genres: string[] }>("/api/movies/genres"),
   movie: (id: number) => request<Movie>(`/api/movies/${id}`),
-  similar: (id: number, limit = 12) =>
-    request<{ results: Movie[] }>(`/api/movies/${id}/similar?limit=${limit}`),
+  similar: (id: number, limit = 12, method: "dl" | "svd" = "dl") =>
+    request<{ results: Movie[]; method: "dl" | "svd" }>(
+      `/api/movies/${id}/similar?limit=${limit}&method=${method}`,
+    ),
 
   // -------- recomendaciones
   home: (token: string | null, guestRatings: RatingEntry[]) =>

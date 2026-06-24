@@ -26,6 +26,27 @@ if [ "${ENSURE_ARTIFACTS:-0}" = "1" ]; then
     python -m src.pipeline baseline || echo "[init] (aviso) baseline no se generó."
   fi
 
+  # Modelo Deep Learning (notebook 04 / etapa train_dl del pipeline).
+  #   - Si ya hay embeddings de servicio: nada.
+  #   - Si el usuario ya entrenó en Jupyter (models/mf_model.pt en el volumen):
+  #     solo exporta los embeddings (rápido).
+  #   - Si no hay nada: entrena vía el pipeline MLOps (reproducible, ~3-4 min).
+  if [ ! -f models/dl_item_embeddings.pkl ]; then
+    if [ -f models/mf_model.pt ]; then
+      echo "[init] Exportando embeddings del modelo Deep Learning (mf_model.pt)…"
+      python app/backend/scripts/export_dl_embeddings.py || echo "[init] (aviso) embeddings DL no se exportaron; 'similares' usará el SVD."
+    else
+      echo "[init] Entrenando modelo Deep Learning vía pipeline (train_dl)…"
+      python -m src.pipeline train_dl || echo "[init] (aviso) DL no se entrenó; 'similares' usará el SVD."
+    fi
+  fi
+
+  # Versiona los artefactos DL en el registry (idempotente; crea una versión nueva).
+  if [ -f models/dl_item_embeddings.pkl ] && [ ! -d models/registry/dl_embeddings ]; then
+    echo "[init] Registrando embeddings DL en el model registry…"
+    python -m src.pipeline register || echo "[init] (aviso) no se registró el artefacto DL."
+  fi
+
   # MLflow: la etapa `evaluate` es la única que registra un run (ver
   # src/pipeline.py). Se ejecuta una sola vez para poblar mlruns/mlflow.db; en
   # arranques posteriores se omite si la BD ya existe.
