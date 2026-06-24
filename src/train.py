@@ -65,6 +65,24 @@ def train_svd() -> dict:
     profiles = _cluster_profiles(ratings, movies, inner_to_raw_u, user_labels,
                                  svd_cfg["k_user_clusters"])
 
+    # Genera item_clusters.parquet (necesario para que el motor de inferencia cargue
+    # sin haber ejecutado el notebook 03 previamente).
+    item_labels = km_items.predict(svd.qi).astype(np.int32)
+    movie_stats = (ratings.groupby("movieId")["rating"]
+                   .agg(n_ratings="count", rating_mean="mean")
+                   .reset_index())
+    item_cluster_df = pd.DataFrame({
+        "movieId": inner_to_raw_i.astype(np.int64),
+        "cluster": item_labels,
+    })
+    item_cluster_df = item_cluster_df.merge(movie_stats, on="movieId", how="left")
+    item_cluster_df["n_ratings"] = item_cluster_df["n_ratings"].fillna(0).astype(int)
+    item_cluster_df["rating_mean"] = item_cluster_df["rating_mean"].fillna(0.0)
+    clusters_path = config.path("data_intermediate") / "item_clusters.parquet"
+    clusters_path.parent.mkdir(parents=True, exist_ok=True)
+    item_cluster_df.to_parquet(clusters_path, index=False)
+    log.info("item_clusters.parquet guardado: %d ítems", len(item_cluster_df))
+
     artifact = {
         "algo": "SVD",
         "dataset": dataset_label,

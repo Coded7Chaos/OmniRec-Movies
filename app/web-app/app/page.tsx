@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import Hero from "@/components/Hero";
@@ -8,20 +8,46 @@ import MovieRow from "@/components/MovieRow";
 import { HeroSkeleton, RowSkeleton } from "@/components/Skeletons";
 import type { HomeResponse } from "@/lib/types";
 
+const RETRY_DELAYS = [3000, 6000, 10000, 15000, 20000];
+
 export default function HomePage() {
   const { ready, token, ratingEntries } = useStore();
   const [data, setData] = useState<HomeResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [connecting, setConnecting] = useState(false);
+  const retryRef = useRef(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!ready) return;
     let cancelled = false;
-    api
-      .home(token, ratingEntries)
-      .then((d) => !cancelled && setData(d))
-      .catch(() => !cancelled && setError("No se pudo conectar con el servidor de OmniCine."));
+    retryRef.current = 0;
+
+    const load = () => {
+      api
+        .home(token, ratingEntries)
+        .then((d) => {
+          if (!cancelled) { setConnecting(false); setData(d); }
+        })
+        .catch((e: unknown) => {
+          if (cancelled) return;
+          const isNetworkError = !e || typeof e !== "object" || !("status" in e);
+          const attempt = retryRef.current;
+          if (isNetworkError && attempt < RETRY_DELAYS.length) {
+            retryRef.current += 1;
+            setConnecting(true);
+            timerRef.current = setTimeout(load, RETRY_DELAYS[attempt]);
+          } else {
+            setConnecting(false);
+            setError("No se pudo conectar con el servidor de OmniCine.");
+          }
+        });
+    };
+    load();
+
     return () => {
       cancelled = true;
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
     // Se recarga al cambiar de sesión, no en cada rating, para no parpadear.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -36,6 +62,16 @@ export default function HomePage() {
             Verifica que el backend esté activo: <code className="text-brand-300">uvicorn main:app --port 8000</code>
           </p>
         </div>
+      </div>
+    );
+  }
+
+  if (connecting) {
+    return (
+      <div className="space-y-12 pb-16">
+        <HeroSkeleton />
+        <RowSkeleton />
+        <RowSkeleton />
       </div>
     );
   }

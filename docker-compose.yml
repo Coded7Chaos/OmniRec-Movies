@@ -36,8 +36,8 @@ services:
       test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/health"]
       interval: 15s
       timeout: 5s
-      retries: 30
-      start_period: 420s                                     # margen para construir el índice la 1ª vez
+      retries: 10
+      start_period: 1800s                                    # margen para construir índice + entrenar DL (~30 min)
     restart: unless-stopped
 
   # ---------------------------------------------------------------- Frontend

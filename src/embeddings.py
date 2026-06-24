@@ -6,6 +6,7 @@ que el producto interno equivalga al coseno.
 """
 from __future__ import annotations
 
+import math
 from functools import lru_cache
 
 import numpy as np
@@ -35,14 +36,37 @@ def encode(texts: list[str], batch_size: int | None = None,
     """Codifica una lista de textos a una matriz (n, d) float32 normalizada."""
     cfg = config.rag_cfg()["encoder"]
     model = get_encoder()
-    emb = model.encode(
-        texts,
-        batch_size=batch_size or cfg["batch_size"],
-        normalize_embeddings=cfg["normalize"],
-        convert_to_numpy=True,
-        show_progress_bar=show_progress,
-    )
-    return emb.astype(np.float32)
+    bs = batch_size or cfg["batch_size"]
+
+    if not show_progress:
+        emb = model.encode(
+            texts,
+            batch_size=bs,
+            normalize_embeddings=cfg["normalize"],
+            convert_to_numpy=True,
+            show_progress_bar=False,
+        )
+        return emb.astype(np.float32)
+
+    # Batching manual para que el progreso aparezca en logs de Docker (sin TTY).
+    n = len(texts)
+    n_batches = math.ceil(n / bs)
+    log_every = max(1, n_batches // 10)
+    parts = []
+    for i in range(0, n, bs):
+        batch_emb = model.encode(
+            texts[i:i + bs],
+            batch_size=bs,
+            normalize_embeddings=cfg["normalize"],
+            convert_to_numpy=True,
+            show_progress_bar=False,
+        )
+        parts.append(batch_emb)
+        bn = i // bs + 1
+        if bn % log_every == 0 or bn == n_batches:
+            log.info("Codificando... %d%% (%d/%d batches)",
+                     round(bn / n_batches * 100), bn, n_batches)
+    return np.vstack(parts).astype(np.float32)
 
 
 def embedding_dim() -> int:
