@@ -1,0 +1,22 @@
+# Normalización de line endings: texto → LF al hacer checkout
+* text=auto
+
+# Shell scripts: siempre LF (Docker/Linux los necesita)
+*.sh text eol=lf
+
+# Dockerfiles y YAML: LF
+Dockerfile* text eol=lf
+docker-compose*.yml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+
+# Archivos binarios: sin conversión
+*.pkl binary
+*.pt binary
+*.parquet binary
+*.npy binary
+*.faiss binary
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary

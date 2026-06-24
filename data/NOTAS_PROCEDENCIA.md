@@ -1,6 +1,18 @@
-# 📊 Dataset MovieLens 25M - Notas
+# Dataset MovieLens 25M — Notas de Procedencia
 
-## 🔗 Enlace original
+## Trazabilidad del Dataset (requerimiento del checklist académico)
+
+| Campo | Valor |
+|-------|-------|
+| **URL oficial de descarga** | https://grouplens.org/datasets/movielens/25m/ |
+| **Variante exacta** | `ml-25m.zip` — versión estable publicada en noviembre 2019 |
+| **Fecha de acceso al dataset** | Noviembre 2019 (descarga original por GroupLens Research) |
+| **Fecha de incorporación al proyecto** | Febrero 2026 |
+| **Criterio de muestreo** | Estratificado por tier de actividad de usuario (Casual/Regular/PowerUser); muestra principal al 60%, benchmark KNN al 10%, Deep Learning al 5% — ver notebook 02 |
+| **Fuente primaria** | GroupLens Research Laboratory, Universidad de Minnesota |
+| **Referencia bibliográfica** | Harper & Konstan (2015), ACM TIIS 5(4), doi:10.1145/2827872 |
+
+## Enlace original
 - https://grouplens.org/datasets/movielens/25m/
 
 ## 📁 Archivos incluidos en el dataset original
